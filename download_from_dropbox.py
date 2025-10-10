@@ -7,7 +7,7 @@ import os
 import shutil
 import requests
 from pathlib import Path
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Optional, Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import time
@@ -73,6 +73,57 @@ def get_order_ids_from_api() -> Set[int]:
         print("Continuing without API data...")
         return set()
 
+def filter_ids_by_range(ids: Set[int], start_id: Optional[int] = None, end_id: Optional[int] = None) -> Set[int]:
+    """Filter IDs by range (inclusive)"""
+    if not ids:
+        return set()
+    
+    if start_id is None and end_id is None:
+        return ids
+    
+    filtered_ids = set()
+    for id_val in ids:
+        if start_id is not None and id_val < start_id:
+            continue
+        if end_id is not None and id_val > end_id:
+            continue
+        filtered_ids.add(id_val)
+    
+    return filtered_ids
+
+def get_range_from_user(all_ids: Set[int]) -> Tuple[Optional[int], Optional[int]]:
+    """Get start and end range from user input"""
+    if not all_ids:
+        return None, None
+    
+    sorted_ids = sorted(list(all_ids))
+    min_id = sorted_ids[0]
+    max_id = sorted_ids[-1]
+    
+    print(f"\nAvailable ID range: {min_id} - {max_id} ({len(all_ids)} total IDs)")
+    print(f"Sample IDs: {sorted_ids[:10]}{'...' if len(sorted_ids) > 10 else ''}")
+    print()
+    
+    while True:
+        try:
+            start_input = input(f"Enter start ID (default: {min_id}): ").strip()
+            start_id = int(start_input) if start_input else min_id
+            
+            end_input = input(f"Enter end ID (default: {max_id}): ").strip()
+            end_id = int(end_input) if end_input else max_id
+            
+            if start_id > end_id:
+                print("Start ID cannot be greater than end ID. Please try again.")
+                continue
+                
+            return start_id, end_id
+            
+        except ValueError:
+            print("Please enter valid numbers.")
+        except KeyboardInterrupt:
+            print("\nCancelled.")
+            return None, None
+
 # Thread-safe counters
 copy_lock = threading.Lock()
 copy_stats = {
@@ -126,7 +177,7 @@ def process_target_id(target_id: int, source_files: List[Path], dest_folder: Pat
             copy_stats['missing_ids'].append(target_id)
         return 0, []
 
-def copy_files_from_folder(target_ids: Set[int], source_folder: Path, dest_folder: Path, folder_type: str) -> Dict[str, int]:
+def copy_files_from_folder(target_ids: Set[int], source_folder: Path, dest_folder: Path, folder_type: str) -> Dict[str, Any]:
     """Copy files from a specific Dropbox folder to destination folder"""
     print(f"\n=== Processing {folder_type.upper()} files ===")
     print(f"Source: {source_folder}")
@@ -240,18 +291,22 @@ def main():
     parser.add_argument('--label', action='store_true', help='Copy label files (PDF/PNG/JPG) from labels folder')
     parser.add_argument('--all', action='store_true', help='Copy both design and label files')
     parser.add_argument('--list', action='store_true', help='List files in Dropbox folders')
+    parser.add_argument('--start', type=int, help='Start ID for range filtering (inclusive)')
+    parser.add_argument('--end', type=int, help='End ID for range filtering (inclusive)')
+    parser.add_argument('--range', action='store_true', help='Use interactive range selection')
     
     args = parser.parse_args()
     
     # If no specific option is provided, show interactive prompt
-    if not any([args.design, args.label, args.all, args.list]):
+    if not any([args.design, args.label, args.all, args.list, args.range]):
         print("Chọn tùy chọn:")
         print("1. Tải chỉ design files (.pes)")
         print("2. Tải chỉ label files (.png/.pdf/.jpg/.svg)")
         print("3. Tải tất cả files")
         print("4. Liệt kê files trong Dropbox")
+        print("5. Chọn range ID để tải")
         print()
-        choice = input("Nhập lựa chọn (1-4) hoặc 'q' để thoát: ").strip()
+        choice = input("Nhập lựa chọn (1-5) hoặc 'q' để thoát: ").strip()
         
         if choice == 'q':
             print("Đã hủy bỏ.")
@@ -264,6 +319,9 @@ def main():
             args.all = True
         elif choice == '4':
             args.list = True
+        elif choice == '5':
+            args.range = True
+            args.all = True  # Default to all files for range selection
         else:
             print("Lựa chọn không hợp lệ. Mặc định tải design files.")
             args.design = True
@@ -300,15 +358,34 @@ def main():
         print("No IDs found from API. Exiting...")
         return
     
-    print(f"Target IDs from API: {len(target_ids)} IDs")
+    print(f"Total IDs from API: {len(target_ids)} IDs")
     
+    # Apply range filtering if specified
+    if args.range or args.start is not None or args.end is not None:
+        if args.range:
+            # Interactive range selection
+            range_values = get_range_from_user(target_ids)
+            if range_values:
+                target_ids = filter_ids_by_range(target_ids, range_values[0], range_values[1])
+        else:
+            # Command line range filtering
+            target_ids = filter_ids_by_range(target_ids, args.start, args.end)
+        
+        if not target_ids:
+            print("No IDs found in specified range. Exiting...")
+            return
+        
+        print(f"Filtered IDs: {len(target_ids)} IDs")
+    
+    print(f"Target IDs for download: {sorted(list(target_ids))}")
+
     # Dropbox base path
     user_dir = os.path.expanduser("~")
     dropbox_base = Path(os.path.join(user_dir, "Dropbox"))
     
     total_copied = 0
     total_errors = 0
-    all_missing_ids = set()  # Collect all missing IDs
+    all_missing_ids = []  # Collect all missing IDs
     
     # Process design files
     if args.design or args.all:
@@ -317,7 +394,7 @@ def main():
         design_stats = copy_files_from_folder(target_ids, design_source, design_dest, "design")
         total_copied += design_stats['copied']
         total_errors += design_stats['errors']
-        all_missing_ids.update(design_stats['missing_ids'])
+        all_missing_ids.extend(design_stats['missing_ids'])
     
     # Process label files
     if args.label or args.all:
@@ -326,7 +403,7 @@ def main():
         label_stats = copy_files_from_folder(target_ids, label_source, label_dest, "label")
         total_copied += label_stats['copied']
         total_errors += label_stats['errors']
-        all_missing_ids.update(label_stats['missing_ids'])
+        all_missing_ids.extend(label_stats['missing_ids'])
     
     # Final summary with complete missing IDs
     print(f"\n=== FINAL SUMMARY ===")
@@ -334,7 +411,8 @@ def main():
     print(f"Total errors: {total_errors}")
     
     if all_missing_ids:
-        missing_list = sorted(list(all_missing_ids))
+        # Remove duplicates and sort
+        missing_list = sorted(list(set(all_missing_ids)))
         print(f"⚠️  Total IDs not found across all folders: {len(missing_list)}")
         print(f"Missing IDs: {missing_list}")
         

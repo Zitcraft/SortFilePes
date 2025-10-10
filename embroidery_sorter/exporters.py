@@ -26,9 +26,6 @@ class Exporters:
         csv_path = Path(csv_path)
         csv_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Calculate folder order
-        folder_order = FileOperations.calculate_folder_order(meta_list)
-        
         with csv_path.open("w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["name", "hash", "id_item", "person_label", "seconds", "readable", "dst_path", "group_name", "folder_order"])
@@ -42,7 +39,8 @@ class Exporters:
                 readable = TimeEstimator.human_readable(seconds)
                 dstp = str(m.get("dst_path")) if m.get("dst_path") is not None else ""
                 group_name = Path(dstp).parent.name if dstp else ""
-                folder_num = folder_order.get(h, 0) if h else 0
+                # Use folder_order from metadata (per-person numbering)
+                folder_num = m.get("folder_order", 0)
                 writer.writerow([name, h, id_item, label, seconds, readable, dstp, group_name, folder_num])
 
             # Append summary if provided
@@ -103,9 +101,6 @@ class Exporters:
 
         headers = ["name", "hash", "id_item", "person_label", "seconds", "readable", "dst_path", "group_name", "folder_order"]
         
-        # Calculate folder order
-        folder_order = FileOperations.calculate_folder_order(meta_list)
-
         # create one sheet per person and populate rows
         for label in person_labels:
             ws = wb.create_sheet(title=label)
@@ -121,7 +116,8 @@ class Exporters:
                 readable = TimeEstimator.human_readable(seconds)
                 dstp = str(m.get("dst_path")) if m.get("dst_path") is not None else ""
                 group_name = Path(dstp).parent.name if dstp else ""
-                folder_num = folder_order.get(h, 0) if h else 0
+                # Use folder_order from metadata (per-person numbering)
+                folder_num = m.get("folder_order", 0)
                 ws.append([name, h, id_item, pl, seconds, readable, dstp, group_name, folder_num])
 
         # Summary sheet

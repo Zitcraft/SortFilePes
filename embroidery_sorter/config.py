@@ -15,8 +15,10 @@ class Config:
     DUPLICATE_REDUCTION_SECONDS = 300.0  # 5 minutes
     
     # Assignment parameters
-    DEFAULT_PEOPLE_COUNT = 3
-    DEFAULT_PERSON_LABELS = ["A", "B", "C"]
+    DEFAULT_PEOPLE_COUNT = 4
+    DEFAULT_PERSON_LABELS = ["A", "B", "C", "D"]
+    # Person weights - last person gets less work (0.2 = 20% of normal workload)
+    DEFAULT_PERSON_WEIGHTS = [1.0, 1.0, 1.0, 0.2]
     
     # File operation parameters
     DEFAULT_HASH_LENGTH = 8
@@ -45,5 +47,6 @@ class Config:
         return {
             'people_count': cls.DEFAULT_PEOPLE_COUNT,
             'person_labels': cls.DEFAULT_PERSON_LABELS,
+            'person_weights': cls.DEFAULT_PERSON_WEIGHTS,
             'duplicate_reduction': cls.DUPLICATE_REDUCTION_SECONDS
         }

@@ -17,7 +17,18 @@ class WorkloadAssignment:
         
         self.people_count = config_params.get('people_count', Config.DEFAULT_PEOPLE_COUNT)
         self.person_labels = config_params.get('person_labels', Config.DEFAULT_PERSON_LABELS.copy())
+        self.person_weights = config_params.get('person_weights', Config.DEFAULT_PERSON_WEIGHTS.copy())
         self.duplicate_reduction = config_params.get('duplicate_reduction', Config.DUPLICATE_REDUCTION_SECONDS)
+        
+        # Ensure weights match the number of people
+        if len(self.person_weights) != self.people_count:
+            # Pad or trim weights to match people count
+            if len(self.person_weights) < self.people_count:
+                # Add 1.0 for missing people
+                self.person_weights.extend([1.0] * (self.people_count - len(self.person_weights)))
+            else:
+                # Trim excess weights
+                self.person_weights = self.person_weights[:self.people_count]
 
     def make_components(self, file_meta: List[Dict[str, Any]]) -> List[List[int]]:
         """Build connected components where files sharing hash or id_item are linked.
@@ -85,8 +96,10 @@ class WorkloadAssignment:
         assignment = [0] * len(file_meta)  # Initialize with zeros
 
         for comp, t in comp_times:
-            # choose person with minimal current load
-            person = min(range(self.people_count), key=lambda p: buckets[p])
+            # Choose person with minimal weighted load (load / weight)
+            # Person with weight 0.2 can take less work, so their effective load is higher
+            person = min(range(self.people_count), 
+                        key=lambda p: buckets[p] / self.person_weights[p] if self.person_weights[p] > 0 else float('inf'))
             buckets[person] += t
             for idx in comp:
                 assignment[idx] = person
@@ -120,7 +133,7 @@ class WorkloadAssignment:
                 people_files[label].append(m)
         
         # Calculate statistics for each group
-        for label in self.person_labels:
+        for i, label in enumerate(self.person_labels):
             files = people_files[label]
             total_secs = sum(m.get("seconds", 0.0) for m in files)
             
@@ -140,12 +153,17 @@ class WorkloadAssignment:
             reduction = sum((cnt - 1) * self.duplicate_reduction for cnt in counts.values() if cnt > 1)
             adjusted = max(0.0, total_secs - reduction)
             
+            # Get person weight
+            person_weight = self.person_weights[i] if i < len(self.person_weights) else 1.0
+            
             summary[label] = {
                 "file_count": len(files),
                 "total_seconds": total_secs,
                 "adjusted_seconds": adjusted,
                 "unique_id_items": len(id_items),
                 "unique_hashes": len(unique_hashes),
+                "weight": person_weight,
+                "weighted_load": adjusted / person_weight if person_weight > 0 else float('inf')
             }
         
         return summary

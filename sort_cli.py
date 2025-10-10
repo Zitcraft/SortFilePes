@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Main CLI interface for embroidery sorter - refactored version using modular components
 """
@@ -34,16 +36,17 @@ def main(argv=None):
     print()
     
     # Show what will happen
-    print("Phân loại file thêu:")
-    print("- Nguồn: files/design/ (file .pes)")
-    print("- Đích: sorted/ (phân loại A/B/C)")
-    print("- Sao chép nhãn từ files/labels/ vào sorted/*/labels/")
-    print("- Tạo CSV/XLSX với folder_order và unique_hashes")
+    print("Phan loai file theu:")
+    print("- Nguon: files/design/ (file .pes)")
+    print("- Dich: sorted/ (phan loai A/B/C/D)")
+    print("- Person weights: A(1.0), B(1.0), C(1.0), D(0.2)")
+    print("- Sao chep nhan tu files/labels/ vao sorted/*/labels/")
+    print("- Tao CSV/XLSX voi folder_order va unique_hashes")
     print()
     
-    confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
+    confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
     if confirm not in ['y', 'yes']:
-        print("Đã hủy bỏ.")
+        print("Da huy bo.")
         return
     print()
 
@@ -59,9 +62,17 @@ def main(argv=None):
 
     # Initialize components
     time_estimator = TimeEstimator()
+    
+    # Determine person labels and weights for the requested number of people
+    person_labels = Config.DEFAULT_PERSON_LABELS[:args.people] if args.people <= len(Config.DEFAULT_PERSON_LABELS) else [f"Person_{i+1}" for i in range(args.people)]
+    
+    # Use corresponding weights, extending with 1.0 if needed
+    person_weights = Config.DEFAULT_PERSON_WEIGHTS[:args.people] if args.people <= len(Config.DEFAULT_PERSON_WEIGHTS) else Config.DEFAULT_PERSON_WEIGHTS + [1.0] * (args.people - len(Config.DEFAULT_PERSON_WEIGHTS))
+    
     workload_assignment = WorkloadAssignment({
         'people_count': args.people,
-        'person_labels': Config.DEFAULT_PERSON_LABELS[:args.people] if args.people <= len(Config.DEFAULT_PERSON_LABELS) else [f"Person_{i+1}" for i in range(args.people)]
+        'person_labels': person_labels,
+        'person_weights': person_weights
     })
 
     # 1) Scan files and compute hash
@@ -98,7 +109,10 @@ def main(argv=None):
         data = summary.get(label, {})
         file_count = data.get("file_count", 0)
         total_seconds = data.get("total_seconds", 0.0)
-        print(f"Group {label}: {file_count} file(s), estimated {TimeEstimator.human_readable(total_seconds)} total")
+        adjusted_seconds = data.get("adjusted_seconds", 0.0)
+        weight = data.get("weight", 1.0)
+        weighted_load = data.get("weighted_load", 0.0)
+        print(f"Group {label}: {file_count} file(s), {TimeEstimator.human_readable(adjusted_seconds)} (weight: {weight}, load: {TimeEstimator.human_readable(weighted_load)})")
 
     # 8) Export CSV if requested (timestamped) - Save to output folder in sorted directory
     if args.csv:
