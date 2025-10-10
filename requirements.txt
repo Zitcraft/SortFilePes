@@ -1,0 +1,14 @@
+# Requirements for embroidery sorter library
+# Core dependencies
+pathlib  # Built-in Python module for file path handling
+
+# Optional dependencies for enhanced functionality
+openpyxl>=3.0.0  # For Excel export functionality
+
+# The pyembroidery package should be installed separately:
+# pip install pyembroidery
+
+# Development dependencies (optional)
+# pytest>=6.0.0  # For testing
+# black>=21.0.0  # For code formatting
+# mypy>=0.900    # For type checking
