@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Complete Embroidery Management Workflow
@@ -10,6 +11,33 @@ import subprocess
 from pathlib import Path
 import logging
 from datetime import datetime
+
+def move_pes_folders():
+    """Gom tất cả các thư mục con có file pes vào thư mục pes trong từng A, B, C, D."""
+    base_sorted = Path("sorted")
+    group_folders = ["A", "B", "C", "D"]
+    pes_folder_name = "pes"
+    pes_count = 0
+    for group in group_folders:
+        group_path = base_sorted / group
+        if not group_path.exists() or not group_path.is_dir():
+            continue
+        pes_path = group_path / pes_folder_name
+        pes_path.mkdir(exist_ok=True)
+        # Duyệt tất cả thư mục con trong group
+        for sub in group_path.iterdir():
+            if sub.is_dir() and sub.name != pes_folder_name:
+                pes_files = list(sub.glob("*.pes"))
+                if pes_files:
+                    # Di chuyển toàn bộ thư mục vào pes
+                    dest = pes_path / sub.name
+                    if dest.exists():
+                        log_print(f"⚠️ Thư mục đã tồn tại: {dest}, bỏ qua!")
+                        continue
+                    sub.rename(dest)
+                    pes_count += 1
+                    log_print(f"Đã di chuyển {sub} vào {pes_path}")
+    log_print(f"\n✅ Đã gom {pes_count} thư mục có file pes vào pes/ trong từng nhóm.")
 
 # Setup logging
 def setup_logging():
@@ -353,7 +381,128 @@ def main():
             # Show status
             show_status()
         else:
+<<<<<<< HEAD
             log_print("❌ Lựa chọn không hợp lệ. Vui lòng thử lại.")
+=======
+            log_print(f"⏭️  Bỏ qua bước {i}")
+            log_debug(f"Step {i} skipped")
+
+def run_all_auto():
+    """Run all steps automatically."""
+    log_print("\n🚀 Chạy tất cả các bước tự động...")
+    confirm = input("Bạn có chắc chắn? (y/N): ").strip().lower()
+    log_debug(f"Auto run confirmation: {confirm}")
+    
+    if confirm not in ['y', 'yes']:
+        log_print("Đã hủy bỏ.")
+        log_debug("Auto run cancelled by user")
+        return
+    
+    steps = [
+        ("download_from_dropbox.py", "Tải file từ Dropbox"),
+        ("sort_cli.py", "Phân loại file thêu"),
+        ("export_dst.py", "Xuất file DST"),
+        ("map_dst_labels.py", "Gắn nhãn DST")
+    ]
+    failed_steps = []
+    log_debug("Starting automatic execution of all steps")
+    for i, (script, description) in enumerate(steps, 1):
+        log_print(f"\n📍 Đang chạy bước {i}/4: {description}")
+        success = run_script(script, description)
+        if not success:
+            failed_steps.append(f"Bước {i}: {description}")
+    # Sau khi hoàn thành các bước chính, gom thư mục pes
+    log_print("\nBổ sung: Gom các thư mục có file pes...")
+    move_pes_folders()
+    log_print(f"\n{'='*60}")
+    log_print("KẾT QUẢ CUỐI CÙNG")
+    log_print(f"{'='*60}")
+    if failed_steps:
+        log_error(f"❌ {len(failed_steps)} bước thất bại:")
+        for step in failed_steps:
+            log_error(f"   - {step}")
+    else:
+        log_print("✅ Tất cả 4 bước hoàn thành thành công!")
+        log_print("\n🎉 Quy trình hoàn chỉnh! Kiểm tra thư mục 'sorted/' để xem kết quả.")
+    log_debug(f"Auto execution completed. Failed steps: {len(failed_steps)}")
+
+def run_specific_step():
+    """Run a specific step."""
+    steps = [
+        ("download_from_dropbox.py", "Tải file từ Dropbox"),
+        ("sort_cli.py", "Phân loại file thêu"),
+        ("export_dst.py", "Xuất file DST"),
+        ("map_dst_labels.py", "Gắn nhãn DST")
+    ]
+    
+    log_print("\nChọn bước để chạy:")
+    for i, (script, description) in enumerate(steps, 1):
+        log_print(f"{i}. {description} ({script})")
+    log_print("")
+    
+    try:
+        choice = int(input("Nhập số bước (1-4): ").strip())
+        log_debug(f"Specific step choice: {choice}")
+        
+        if 1 <= choice <= 4:
+            script, description = steps[choice - 1]
+            run_script(script, description)
+        else:
+            log_error("Số bước không hợp lệ.")
+    except ValueError:
+        log_error("Vui lòng nhập số.")
+
+def show_directory_status():
+    """Show current directory status."""
+    log_print(f"\n{'='*60}")
+    log_print("TRẠNG THÁI THỦ MỤC")
+    log_print(f"{'='*60}")
+    
+    dirs_to_check = [
+        ("files/", "Thư mục dữ liệu chính"),
+        ("files/design/", "File .pes từ Dropbox"),
+        ("files/labels/", "File nhãn từ Dropbox"),
+        ("sorted/", "Kết quả phân loại"),
+        ("sorted/A/", "File người A"),
+        ("sorted/B/", "File người B"), 
+        ("sorted/C/", "File người C"),
+        ("sorted/output/", "CSV/XLSX/JSON reports")
+    ]
+    
+    log_debug("Checking directory status")
+    
+    for dir_path, description in dirs_to_check:
+        path = Path(dir_path)
+        if path.exists():
+            if path.is_dir():
+                file_count = len(list(path.iterdir())) if path.is_dir() else 0
+                log_print(f"✅ {description:30} ({file_count} items)")
+                log_debug(f"Directory {dir_path}: {file_count} items")
+            else:
+                log_print(f"❓ {description:30} (not a directory)")
+                log_debug(f"Path {dir_path} exists but is not a directory")
+        else:
+            log_print(f"❌ {description:30} (not found)")
+            log_debug(f"Directory {dir_path} not found")
+    
+    # Check for specific file types
+    log_print("")
+    log_print("Chi tiết file:")
+    
+    file_checks = [
+        ("files/design/*.pes", "PES files"),
+        ("files/labels/*.png", "PNG labels"),
+        ("sorted/*/dst/*.dst", "DST files"),
+        ("sorted/output/*.csv", "CSV reports"),
+        ("sorted/output/*.xlsx", "Excel reports"),
+        ("sorted/output/*.json", "JSON logs")
+    ]
+    
+    for pattern, description in file_checks:
+        files = list(Path().glob(pattern))
+        log_print(f"   {description:20}: {len(files)} files")
+        log_debug(f"File pattern {pattern}: {len(files)} files")
+>>>>>>> 33758f461ed244b281fd68aeed2356a19662c9a8
 
 if __name__ == "__main__":
     main()
