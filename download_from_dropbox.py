@@ -297,6 +297,11 @@ def main():
     
     args = parser.parse_args()
     
+    # Check for partial auto mode environment variables
+    partial_auto = os.environ.get('PARTIAL_AUTO_MODE') == '1'
+    auto_option = os.environ.get('AUTO_OPTION')
+    auto_confirm = os.environ.get('AUTO_CONFIRM')
+    
     # If no specific option is provided, show interactive prompt
     if not any([args.design, args.label, args.all, args.list, args.range]):
         print("Chọn tùy chọn:")
@@ -306,7 +311,13 @@ def main():
         print("4. Liệt kê files trong Dropbox")
         print("5. Chọn range ID để tải")
         print()
-        choice = input("Nhập lựa chọn (1-5) hoặc 'q' để thoát: ").strip()
+        
+        # Use auto option if in partial auto mode
+        if partial_auto and auto_option:
+            choice = auto_option
+            print(f"🤖 Auto mode: Chọn option {choice}")
+        else:
+            choice = input("Nhập lựa chọn (1-5) hoặc 'q' để thoát: ").strip()
         
         if choice == 'q':
             print("Đã hủy bỏ.")
@@ -341,11 +352,18 @@ def main():
         action = "Tải files"
     
     print(f"\n{action}")
-    confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
-    if confirm not in ['y', 'yes']:
-        print("Đã hủy bỏ.")
-        return
-    print()
+    
+    # Use auto confirm if in partial auto mode
+    if partial_auto and auto_confirm:
+        confirm = auto_confirm
+        print(f"🤖 Auto mode: Xác nhận '{confirm}'")
+    else:
+        confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
+    
+    # if confirm not in ['y', 'yes']:
+    #     print("Đã hủy bỏ.")
+    #     return
+    # print()
     
     # Create directories
     os.makedirs("files/design", exist_ok=True)

@@ -39,16 +39,16 @@ def main(argv=None):
     print("Phan loai file theu:")
     print("- Nguon: files/design/ (file .pes)")
     print("- Dich: sorted/ (phan loai A/B/C/D)")
-    print("- Person weights: A(1.0), B(1.0), C(1.0), D(0.2)")
+    print("- Person weights: A(1.0), B(1.0), C(0.7), D(0.2)")
     print("- Sao chep nhan tu files/labels/ vao sorted/*/labels/")
     print("- Tao CSV/XLSX voi folder_order va unique_hashes")
     print()
     
-    confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
-    if confirm not in ['y', 'yes']:
-        print("Da huy bo.")
-        return
-    print()
+    # confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
+    # if confirm not in ['y', 'yes']:
+    #     print("Da huy bo.")
+    #     return
+    # print()
 
     src = Path(args.src).resolve()
     dst = Path(args.dst).resolve()

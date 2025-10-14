@@ -6,7 +6,7 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from .config import Config
 
@@ -102,7 +102,82 @@ class EmbroideryCore:
         return files
 
     @staticmethod
-    def parse_id_item_from_filename(filename: str, index: int = 1) -> str:
+    def scan_pes_files_from_sorted(sorted_dir: Path) -> List[Dict[str, Any]]:
+        """Scan PES files from sorted structure (sorted/*/pes/*/*.pes or sorted/*/*/*.pes).
+        
+        Handles both new structure with pes subdirectories and legacy flat structure.
+        Returns list of dicts with keys: path (Path), name, hash8, id_item (str or None)
+        """
+        files = []
+        
+        # Check if sorted directory exists
+        if not sorted_dir.exists():
+            print(f"Sorted directory does not exist: {sorted_dir}")
+            return files
+        
+        # Scan person folders (A, B, C, D, etc.)
+        for person_dir in sorted_dir.glob("[A-Z]*"):
+            if not person_dir.is_dir():
+                continue
+                
+            print(f"Scanning person folder: {person_dir.name}")
+            
+            # Check for pes subdirectory structure first
+            pes_dir = person_dir / "pes"
+            if pes_dir.exists():
+                # New structure: sorted/A/pes/001_hash8/*.pes
+                for hash_dir in pes_dir.glob("*_*"):
+                    if not hash_dir.is_dir():
+                        continue
+                    
+                    # Scan PES files in this hash folder
+                    for pes_file in hash_dir.glob("*.pes"):
+                        try:
+                            h8 = EmbroideryCore.hash_file_by_pattern(pes_file)
+                        except Exception as e:
+                            print(f"Failed hashing {pes_file}: {e}", file=sys.stderr)
+                            continue
+
+                        # parse id_item: assume format like 1827_2081_... -> take second field
+                        parts = pes_file.name.split("_")
+                        id_item = parts[1] if len(parts) > 1 else None
+
+                        files.append({
+                            "path": pes_file, 
+                            "name": pes_file.name, 
+                            "hash": h8, 
+                            "id_item": id_item
+                        })
+            else:
+                # Legacy structure: sorted/A/001_hash8/*.pes (flat in person folder)
+                for hash_dir in person_dir.glob("*_*"):
+                    if not hash_dir.is_dir():
+                        continue
+                    
+                    # Scan PES files in this hash folder
+                    for pes_file in hash_dir.glob("*.pes"):
+                        try:
+                            h8 = EmbroideryCore.hash_file_by_pattern(pes_file)
+                        except Exception as e:
+                            print(f"Failed hashing {pes_file}: {e}", file=sys.stderr)
+                            continue
+
+                        # parse id_item: assume format like 1827_2081_... -> take second field
+                        parts = pes_file.name.split("_")
+                        id_item = parts[1] if len(parts) > 1 else None
+
+                        files.append({
+                            "path": pes_file, 
+                            "name": pes_file.name, 
+                            "hash": h8, 
+                            "id_item": id_item
+                        })
+        
+        print(f"Found {len(files)} PES files in sorted structure")
+        return files
+
+    @staticmethod
+    def parse_id_item_from_filename(filename: str, index: int = 1) -> Optional[str]:
         """Parse id_item from filename by splitting on underscore and taking specified index.
         
         Args:

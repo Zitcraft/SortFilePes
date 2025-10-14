@@ -79,7 +79,8 @@ class FileOperations:
             h8 = m["hash"]
             order_num = person_orders[person_idx][h8]
             grp_name = f"{order_num:03d}_{h8}"
-            grp_path = dst / label / grp_name
+            # Add pes/ subdirectory: sorted/person(A)/pes/001_hash8/
+            grp_path = dst / label / "pes" / grp_name
             grp_path.mkdir(parents=True, exist_ok=True)
 
             dest = grp_path / m["name"]
@@ -95,7 +96,7 @@ class FileOperations:
             newm["person_label"] = label
             newm["folder_order"] = order_num  # Add folder order for this person
             updated_meta.append(newm)
-            print(f"Assigned {m['name']} -> {label}/{grp_name}/")
+            print(f"Assigned {m['name']} -> {label}/pes/{grp_name}/")
 
         return updated_meta
 

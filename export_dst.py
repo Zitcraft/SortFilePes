@@ -86,8 +86,17 @@ def scan_sorted_folders(sorted_dir):
         person = person_dir.name
         folder_info[person] = {}
         
-        # Scan hash folders within person folder
-        for hash_dir in person_dir.glob("*_*"):
+        # Check if there's a pes subdirectory (new structure)
+        pes_dir = person_dir / "pes"
+        if pes_dir.exists() and pes_dir.is_dir():
+            # New structure: sorted/person/pes/001_hash8/
+            scan_dir = pes_dir
+        else:
+            # Old structure: sorted/person/001_hash8/
+            scan_dir = person_dir
+        
+        # Scan hash folders within pes directory or person directory
+        for hash_dir in scan_dir.glob("*_*"):
             if not hash_dir.is_dir():
                 continue
                 
@@ -162,7 +171,14 @@ def group_files_for_dst_export(folder_info):
         )
         
         # Get person folder path (parent of hash folders)
-        person_folder_path = representative_file['folder_path'].parent
+        # With new structure: sorted/A/pes/001_hash8/ -> we need sorted/A/
+        hash_folder_path = representative_file['folder_path']
+        if hash_folder_path.parent.name == 'pes':
+            # New structure: sorted/A/pes/001_hash8/ -> sorted/A/
+            person_folder_path = hash_folder_path.parent.parent
+        else:
+            # Old structure: sorted/A/001_hash8/ -> sorted/A/
+            person_folder_path = hash_folder_path.parent
         
         export_jobs.append({
             'dst_name': dst_name,
@@ -262,11 +278,11 @@ def main():
     print("- Xử lý multi-face items (front, sleeve_left, sleeve_right)")
     print()
     
-    confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
-    if confirm not in ['y', 'yes']:
-        print("Đã hủy bỏ.")
-        return
-    print()
+    # confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
+    # if confirm not in ['y', 'yes']:
+    #     print("Đã hủy bỏ.")
+    #     return
+    # print()
     
     sorted_dir = "sorted"
     

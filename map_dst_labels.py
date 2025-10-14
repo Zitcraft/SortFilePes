@@ -14,6 +14,24 @@ from PIL import Image, ImageDraw, ImageFont
 from collections import defaultdict
 import sys
 
+def draw_text_spacing(img, text, font, color, start=(1,1), letter_spacing=1, simulate_bold=False):
+    draw = ImageDraw.Draw(img)
+    x, y = start
+    for ch in text:
+        # Vẽ chồng 4 lớp để đậm lên
+        for dx, dy in ((0,0),(1,0),(0,1),(1,1)):
+            draw.text((x+dx, y+dy), ch, font=font, fill=color)
+        # Tính chiều rộng ký tự
+        if hasattr(font, "getlength"):
+            w = int(round(font.getlength(ch)))
+        elif hasattr(font, "getbbox"):
+            l,t,r,b = font.getbbox(ch)
+            w = r - l
+        else:
+            bbox = draw.textbbox((0,0), ch, font=font)
+            w = bbox[2] - bbox[0]
+        x += w + letter_spacing
+
 def load_dst_log(log_path="sorted/output/dst_export_log.json"):
     """Load DST export log and group by item IDs."""
     if not os.path.exists(log_path):
@@ -75,67 +93,60 @@ def extract_item_id_from_filename(filename):
     
     return None
 
-def get_font():
-    """Get font for text rendering."""
+def get_font(font_size=16):
+    # Ưu tiên Consolas, fallback về Arial, cuối cùng là default
     try:
-        # Try to use a system font
-        return ImageFont.truetype("arial.ttf", 14)
+        return ImageFont.truetype("consola.ttf", font_size)
     except:
         try:
-            return ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 14)
+            return ImageFont.truetype("C:/Windows/Fonts/consola.ttf", font_size)
         except:
-            return ImageFont.load_default()
+            try:
+                return ImageFont.truetype("arial.ttf", font_size)
+            except:
+                try:
+                    return ImageFont.truetype("C:/Windows/Fonts/arial.ttf", font_size)
+                except:
+                    return ImageFont.load_default()
 
 def process_label_image(image_path, dst_names):
     """Process a single label image to add DST content."""
     try:
+        # Tham số crop và text spacing (có thể điều chỉnh)
+        top = 32
+        bottom = 32
+        font_size = 18
+        letter_spacing = 3
+        color = (0,0,0,255)
+        force_bold = False
         # Open image
         img = Image.open(image_path).convert('RGBA')
-        
-        # Verify image dimensions (should be 289x162 at 96 DPI)
-        if img.size != (289, 162):
-            print(f"Warning: {os.path.basename(image_path)} has unexpected size {img.size}, expected (289, 162)")
-        
-        # Get bounding box of non-transparent content
-        bbox = img.getbbox()
-        if bbox is None:
-            print(f"Warning: {os.path.basename(image_path)} appears to be empty")
+        w, h = img.size
+        if h <= bottom:
+            print(f"Ảnh quá nhỏ so với bottom crop: {image_path}")
             return False
-        
-        # Create new image with same size
-        new_img = Image.new('RGBA', (289, 162), (255, 255, 255, 0))
-        
-        # Calculate position to place content at bottom
-        content_width = bbox[2] - bbox[0]
-        content_height = bbox[3] - bbox[1]
-        
-        # Position content at bottom center
-        paste_x = (289 - content_width) // 2
-        paste_y = 162 - content_height - 5  # 5px margin from bottom
-        
-        # Crop original content and paste to new position
-        content = img.crop(bbox)
-        new_img.paste(content, (paste_x, paste_y), content)
-        
-        # Prepare DST text
-        if len(dst_names) == 1:
-            dst_text = dst_names[0]
+        base = img
+        cropped = base.crop((0,0,w,h-bottom))
+        canvas = Image.new("RGBA", (w,h), (0,0,0,0))
+        canvas.paste(cropped, (0, top), cropped)
+        font = get_font(font_size)
+        sim_bold = force_bold
+        # Ghép text DST: tối đa 4 DST, chia 2 dòng, mỗi dòng 2 DST
+        dst_lines = []
+        if len(dst_names) <= 2:
+            dst_lines.append(" | ".join(dst_names))
         else:
-            dst_text = " | ".join(dst_names)
-        
-        # Add DST text at top-left
-        draw = ImageDraw.Draw(new_img)
-        font = get_font()
-        
-        # Add text with black color
-        text_x = 5  # 5px margin from left
-        text_y = 5  # 5px margin from top
-        draw.text((text_x, text_y), dst_text, fill=(0, 0, 0, 255), font=font)
-        
-        # Save processed image
-        new_img.save(image_path)
+            # Dòng 1: DST1 | DST2, Dòng 2: DST3 | DST4 (nếu có)
+            dst_lines.append(" | ".join(dst_names[:2]))
+            dst_lines.append(" | ".join(dst_names[2:4]))
+        # Vẽ từng dòng DST
+        y = 5
+        for line in dst_lines:
+            y = -2
+            draw_text_spacing(canvas, line, font, color, (11, y), letter_spacing, simulate_bold=sim_bold)
+            y += font.size + 4  # cách dòng
+        canvas.save(image_path, "PNG")
         return True
-        
     except Exception as e:
         print(f"Error processing {os.path.basename(image_path)}: {e}")
         return False
@@ -145,21 +156,12 @@ def move_and_process_label(source_path, item_id, dst_info, move_files=True):
     person = dst_info['person']
     dst_names = dst_info['dst_names']
     
-    # Extract DST number from first DST name (e.g., "001A1F09j" -> "001")
-    first_dst = dst_names[0] if dst_names else ""
-    dst_number = ""
-    if first_dst and len(first_dst) >= 3:
-        try:
-            # Extract first 3 digits
-            dst_number = first_dst[:3]
-            int(dst_number)  # Verify it's numeric
-        except ValueError:
-            dst_number = ""
-    
-    # Create new filename with DST number prefix
+    # Tạo tên file mới với tất cả DST liên quan, nối bằng dấu _
     original_filename = os.path.basename(source_path)
-    if dst_number:
-        new_filename = f"{dst_number}_{original_filename}"
+    if dst_names:
+        # Lấy toàn bộ tên DST, nối bằng dấu _
+        dst_prefix = "_".join(dst_names)
+        new_filename = f"{dst_prefix}_{original_filename}"
     else:
         new_filename = original_filename
     
@@ -210,11 +212,11 @@ def main():
     print("- Multi-face: 'DST1 | DST2 | DST3'")
     print()
     
-    confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
-    if confirm not in ['y', 'yes']:
-        print("Da huy bo.")
-        return
-    print()
+    # confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
+    # if confirm not in ['y', 'yes']:
+    #     print("Da huy bo.")
+    #     return
+    # print()
     
     print("DST Label Mapper")
     print("================")
@@ -268,9 +270,6 @@ def main():
             dst_names = info['dst_names']
             person = info['person']
             print(f"  Item {item_id} (Person {person}): {' | '.join(dst_names)}")
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
