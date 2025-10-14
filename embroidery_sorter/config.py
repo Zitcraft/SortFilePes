@@ -18,7 +18,7 @@ class Config:
     DEFAULT_PEOPLE_COUNT = 4
     DEFAULT_PERSON_LABELS = ["A", "B", "C", "D"]
     # Person weights - last person gets less work (0.2 = 20% of normal workload)
-    DEFAULT_PERSON_WEIGHTS = [1.0, 1.0, 1.0, 0.2]
+    DEFAULT_PERSON_WEIGHTS = [1.0, 1.0, 0.7, 0.2]
     
     # File operation parameters
     DEFAULT_HASH_LENGTH = 8

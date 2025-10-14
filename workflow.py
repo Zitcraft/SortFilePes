@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Complete Embroidery Management Workflow
@@ -10,6 +11,33 @@ import subprocess
 from pathlib import Path
 import logging
 from datetime import datetime
+
+def move_pes_folders():
+    """Gom tất cả các thư mục con có file pes vào thư mục pes trong từng A, B, C, D."""
+    base_sorted = Path("sorted")
+    group_folders = ["A", "B", "C", "D"]
+    pes_folder_name = "pes"
+    pes_count = 0
+    for group in group_folders:
+        group_path = base_sorted / group
+        if not group_path.exists() or not group_path.is_dir():
+            continue
+        pes_path = group_path / pes_folder_name
+        pes_path.mkdir(exist_ok=True)
+        # Duyệt tất cả thư mục con trong group
+        for sub in group_path.iterdir():
+            if sub.is_dir() and sub.name != pes_folder_name:
+                pes_files = list(sub.glob("*.pes"))
+                if pes_files:
+                    # Di chuyển toàn bộ thư mục vào pes
+                    dest = pes_path / sub.name
+                    if dest.exists():
+                        log_print(f"⚠️ Thư mục đã tồn tại: {dest}, bỏ qua!")
+                        continue
+                    sub.rename(dest)
+                    pes_count += 1
+                    log_print(f"Đã di chuyển {sub} vào {pes_path}")
+    log_print(f"\n✅ Đã gom {pes_count} thư mục có file pes vào pes/ trong từng nhóm.")
 
 # Setup logging
 def setup_logging():
@@ -242,20 +270,19 @@ def run_all_auto():
         ("export_dst.py", "Xuất file DST"),
         ("map_dst_labels.py", "Gắn nhãn DST")
     ]
-    
     failed_steps = []
     log_debug("Starting automatic execution of all steps")
-    
     for i, (script, description) in enumerate(steps, 1):
         log_print(f"\n📍 Đang chạy bước {i}/4: {description}")
         success = run_script(script, description)
         if not success:
             failed_steps.append(f"Bước {i}: {description}")
-    
+    # Sau khi hoàn thành các bước chính, gom thư mục pes
+    log_print("\nBổ sung: Gom các thư mục có file pes...")
+    move_pes_folders()
     log_print(f"\n{'='*60}")
     log_print("KẾT QUẢ CUỐI CÙNG")
     log_print(f"{'='*60}")
-    
     if failed_steps:
         log_error(f"❌ {len(failed_steps)} bước thất bại:")
         for step in failed_steps:
@@ -263,7 +290,6 @@ def run_all_auto():
     else:
         log_print("✅ Tất cả 4 bước hoàn thành thành công!")
         log_print("\n🎉 Quy trình hoàn chỉnh! Kiểm tra thư mục 'sorted/' để xem kết quả.")
-    
     log_debug(f"Auto execution completed. Failed steps: {len(failed_steps)}")
 
 def run_specific_step():

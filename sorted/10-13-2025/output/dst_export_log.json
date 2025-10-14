@@ -1,0 +1,879 @@
+{
+  "export_date": "2025-10-13T23:15:33.933576",
+  "total_dst_files": 48,
+  "naming_convention": {
+    "format": "XXXYLZMDD.dst",
+    "XXX": "folder_order (3 digits)",
+    "Y": "person (A/B/C)",
+    "L": "total_faces of item",
+    "Z": "position (F=front, L=sleeve_left, R=sleeve_right)",
+    "MM": "day (01-31)",
+    "D": "month_code (a=Jan, b=Feb, ..., j=Oct)"
+  },
+  "mappings": [
+    {
+      "dst_name": "001A1F13j.dst",
+      "person": "A",
+      "folder_order": 1,
+      "folder_name": "001_402ce022",
+      "items": [
+        2944
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2585_2944_front_L_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2585_2944_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\001A1F13j.dst"
+    },
+    {
+      "dst_name": "002A1F13j.dst",
+      "person": "A",
+      "folder_order": 2,
+      "folder_name": "002_e5e06aa6",
+      "items": [
+        2951
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2589_2951_front_XL_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2589_2951_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\002A1F13j.dst"
+    },
+    {
+      "dst_name": "003A1F13j.dst",
+      "person": "A",
+      "folder_order": 3,
+      "folder_name": "003_de319648",
+      "items": [
+        2955
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2593_2955_front_XL_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2593_2955_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\003A1F13j.dst"
+    },
+    {
+      "dst_name": "004A1F13j.dst",
+      "person": "A",
+      "folder_order": 4,
+      "folder_name": "004_c30a3bc6",
+      "items": [
+        2961
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2598_2961_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2598_2961_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\004A1F13j.dst"
+    },
+    {
+      "dst_name": "004A1F13j.dst",
+      "person": "A",
+      "folder_order": 4,
+      "folder_name": "004_c30a3bc6",
+      "items": [
+        2962
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2599_2962_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2599_2962_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\004A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2966
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2603_2966_front_S_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2603_2966_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2967
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2604_2967_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2604_2967_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2968
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2605_2968_front_XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2605_2968_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2969
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2606_2969_front_2XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2606_2969_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2970
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2607_2970_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2607_2970_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2971
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2608_2971_front_3XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2608_2971_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2972
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2609_2972_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2609_2972_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "005A1F13j.dst",
+      "person": "A",
+      "folder_order": 5,
+      "folder_name": "005_aba07a5b",
+      "items": [
+        2973
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2610_2973_front_S_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2610_2973_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\005A1F13j.dst"
+    },
+    {
+      "dst_name": "006A1F13j.dst",
+      "person": "A",
+      "folder_order": 6,
+      "folder_name": "006_5c3e5c79",
+      "items": [
+        2974
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2611_2974_front_2XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2611_2974_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\006A1F13j.dst"
+    },
+    {
+      "dst_name": "007A1F13j.dst",
+      "person": "A",
+      "folder_order": 7,
+      "folder_name": "007_3f3a75f9",
+      "items": [
+        2981
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2618_2981_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2618_2981_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\A\\dst\\007A1F13j.dst"
+    },
+    {
+      "dst_name": "001B1F13j.dst",
+      "person": "B",
+      "folder_order": 1,
+      "folder_name": "001_1e89d8ec",
+      "items": [
+        2934
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2578_2934_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2578_2934_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\001B1F13j.dst"
+    },
+    {
+      "dst_name": "001B1F13j.dst",
+      "person": "B",
+      "folder_order": 1,
+      "folder_name": "001_1e89d8ec",
+      "items": [
+        2936
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2579_2936_front_XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2579_2936_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\001B1F13j.dst"
+    },
+    {
+      "dst_name": "001B1F13j.dst",
+      "person": "B",
+      "folder_order": 1,
+      "folder_name": "001_1e89d8ec",
+      "items": [
+        2939
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2582_2939_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2582_2939_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\001B1F13j.dst"
+    },
+    {
+      "dst_name": "001B1F13j.dst",
+      "person": "B",
+      "folder_order": 1,
+      "folder_name": "001_1e89d8ec",
+      "items": [
+        2941
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2583_2941_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2583_2941_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\001B1F13j.dst"
+    },
+    {
+      "dst_name": "001B1F13j.dst",
+      "person": "B",
+      "folder_order": 1,
+      "folder_name": "001_1e89d8ec",
+      "items": [
+        2942
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2584_2942_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2584_2942_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\001B1F13j.dst"
+    },
+    {
+      "dst_name": "002B1F13j.dst",
+      "person": "B",
+      "folder_order": 2,
+      "folder_name": "002_7d4ae708",
+      "items": [
+        2937
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2580_2937_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2580_2937_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\002B1F13j.dst"
+    },
+    {
+      "dst_name": "003B1F13j.dst",
+      "person": "B",
+      "folder_order": 3,
+      "folder_name": "003_528f3d74",
+      "items": [
+        2953
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2591_2953_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2591_2953_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\003B1F13j.dst"
+    },
+    {
+      "dst_name": "004B1F13j.dst",
+      "person": "B",
+      "folder_order": 4,
+      "folder_name": "004_0ba79bf2",
+      "items": [
+        2954
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2592_2954_front_S_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2592_2954_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\004B1F13j.dst"
+    },
+    {
+      "dst_name": "005B1F13j.dst",
+      "person": "B",
+      "folder_order": 5,
+      "folder_name": "005_ea20aa84",
+      "items": [
+        2956
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2594_2956_front_L_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2594_2956_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\005B1F13j.dst"
+    },
+    {
+      "dst_name": "006B1F13j.dst",
+      "person": "B",
+      "folder_order": 6,
+      "folder_name": "006_b32abb18",
+      "items": [
+        2958
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2595_2958_front_L_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2595_2958_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\006B1F13j.dst"
+    },
+    {
+      "dst_name": "007B1F13j.dst",
+      "person": "B",
+      "folder_order": 7,
+      "folder_name": "007_1381a02b",
+      "items": [
+        2959
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2596_2959_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2596_2959_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\007B1F13j.dst"
+    },
+    {
+      "dst_name": "008B1F13j.dst",
+      "person": "B",
+      "folder_order": 8,
+      "folder_name": "008_8122d11f",
+      "items": [
+        2960
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2597_2960_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2597_2960_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\008B1F13j.dst"
+    },
+    {
+      "dst_name": "009B1F13j.dst",
+      "person": "B",
+      "folder_order": 9,
+      "folder_name": "009_81ad0234",
+      "items": [
+        2963
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2600_2963_front_XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2600_2963_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\009B1F13j.dst"
+    },
+    {
+      "dst_name": "010B2F13j.dst",
+      "person": "B",
+      "folder_order": 10,
+      "folder_name": "010_9bd45952",
+      "items": [
+        2964
+      ],
+      "position": "front",
+      "total_faces": 2,
+      "pes_files": [
+        "2601_2964_front_M_Sweatshirt_2_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2601_2964_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\010B2F13j.dst"
+    },
+    {
+      "dst_name": "011B2R13j.dst",
+      "person": "B",
+      "folder_order": 11,
+      "folder_name": "011_90d4cccf",
+      "items": [
+        2964
+      ],
+      "position": "sleeve_right",
+      "total_faces": 2,
+      "pes_files": [
+        "2601_2964_sleeve_right_M_Sweatshirt_2_2_item_1.pes"
+      ],
+      "label_patterns": [
+        "2601_2964_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\011B2R13j.dst"
+    },
+    {
+      "dst_name": "012B1F13j.dst",
+      "person": "B",
+      "folder_order": 12,
+      "folder_name": "012_d72e2031",
+      "items": [
+        2979
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2616_2979_front_2XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2616_2979_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\012B1F13j.dst"
+    },
+    {
+      "dst_name": "013B1F13j.dst",
+      "person": "B",
+      "folder_order": 13,
+      "folder_name": "013_e6335cce",
+      "items": [
+        2984
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2621_2984_front_M_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2621_2984_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\B\\dst\\013B1F13j.dst"
+    },
+    {
+      "dst_name": "001C1F13j.dst",
+      "person": "C",
+      "folder_order": 1,
+      "folder_name": "001_d531a3ab",
+      "items": [
+        2935
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2578_2935_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2578_2935_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\001C1F13j.dst"
+    },
+    {
+      "dst_name": "001C1F13j.dst",
+      "person": "C",
+      "folder_order": 1,
+      "folder_name": "001_d531a3ab",
+      "items": [
+        2938
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2581_2938_front_XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2581_2938_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\001C1F13j.dst"
+    },
+    {
+      "dst_name": "001C1F13j.dst",
+      "person": "C",
+      "folder_order": 1,
+      "folder_name": "001_d531a3ab",
+      "items": [
+        2940
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2582_2940_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2582_2940_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\001C1F13j.dst"
+    },
+    {
+      "dst_name": "001C1F13j.dst",
+      "person": "C",
+      "folder_order": 1,
+      "folder_name": "001_d531a3ab",
+      "items": [
+        2943
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2584_2943_front_M_Sweatshirt_1_1_item_2.pes"
+      ],
+      "label_patterns": [
+        "2584_2943_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\001C1F13j.dst"
+    },
+    {
+      "dst_name": "002C1F13j.dst",
+      "person": "C",
+      "folder_order": 2,
+      "folder_name": "002_453416eb",
+      "items": [
+        2945
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2586_2945_front_S_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2586_2945_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\002C1F13j.dst"
+    },
+    {
+      "dst_name": "003C2F13j.dst",
+      "person": "C",
+      "folder_order": 3,
+      "folder_name": "003_8bd79297",
+      "items": [
+        2952
+      ],
+      "position": "front",
+      "total_faces": 2,
+      "pes_files": [
+        "2590_2952_front_L_Sweatshirt_2_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2590_2952_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\003C2F13j.dst"
+    },
+    {
+      "dst_name": "004C2L13j.dst",
+      "person": "C",
+      "folder_order": 4,
+      "folder_name": "004_a058840a",
+      "items": [
+        2952
+      ],
+      "position": "sleeve_left",
+      "total_faces": 2,
+      "pes_files": [
+        "2590_2952_sleeve_left_L_Sweatshirt_2_2_item_1.pes"
+      ],
+      "label_patterns": [
+        "2590_2952_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\004C2L13j.dst"
+    },
+    {
+      "dst_name": "005C1F13j.dst",
+      "person": "C",
+      "folder_order": 5,
+      "folder_name": "005_63665bb6",
+      "items": [
+        2965
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2602_2965_front_XL_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2602_2965_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\005C1F13j.dst"
+    },
+    {
+      "dst_name": "006C1F13j.dst",
+      "person": "C",
+      "folder_order": 6,
+      "folder_name": "006_8c4c3603",
+      "items": [
+        2975
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2612_2975_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2612_2975_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\006C1F13j.dst"
+    },
+    {
+      "dst_name": "007C1F13j.dst",
+      "person": "C",
+      "folder_order": 7,
+      "folder_name": "007_32fddf6d",
+      "items": [
+        2976
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2613_2976_front_2XL_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2613_2976_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\007C1F13j.dst"
+    },
+    {
+      "dst_name": "007C1F13j.dst",
+      "person": "C",
+      "folder_order": 7,
+      "folder_name": "007_32fddf6d",
+      "items": [
+        2977
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2614_2977_front_2XL_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2614_2977_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\007C1F13j.dst"
+    },
+    {
+      "dst_name": "008C1F13j.dst",
+      "person": "C",
+      "folder_order": 8,
+      "folder_name": "008_aacd4264",
+      "items": [
+        2982
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2619_2982_front_S_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2619_2982_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\008C1F13j.dst"
+    },
+    {
+      "dst_name": "009C1F13j.dst",
+      "person": "C",
+      "folder_order": 9,
+      "folder_name": "009_2c45a33d",
+      "items": [
+        2983
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2620_2983_front_L_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2620_2983_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\C\\dst\\009C1F13j.dst"
+    },
+    {
+      "dst_name": "001D1F13j.dst",
+      "person": "D",
+      "folder_order": 1,
+      "folder_name": "001_dca48ebe",
+      "items": [
+        2946
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2587_2946_front_XL_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2587_2946_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\D\\dst\\001D1F13j.dst"
+    },
+    {
+      "dst_name": "001D1F13j.dst",
+      "person": "D",
+      "folder_order": 1,
+      "folder_name": "001_dca48ebe",
+      "items": [
+        2980
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2617_2980_front_M_Comfort _1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2617_2980_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\D\\dst\\001D1F13j.dst"
+    },
+    {
+      "dst_name": "002D1F13j.dst",
+      "person": "D",
+      "folder_order": 2,
+      "folder_name": "002_0920b62f",
+      "items": [
+        2978
+      ],
+      "position": "front",
+      "total_faces": 1,
+      "pes_files": [
+        "2615_2978_front_M_Sweatshirt_1_1_item_1.pes"
+      ],
+      "label_patterns": [
+        "2615_2978_1_1_item_1.png"
+      ],
+      "dst_path": "sorted\\D\\dst\\002D1F13j.dst"
+    }
+  ]
+}
