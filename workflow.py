@@ -155,6 +155,23 @@ def run_script(script_name, description, args=None):
         log_print(f"❌ Error running {script_name}: {e}")
         return False
 
+
+def run_check_completeness():
+    """Run check_id_completeness.py and log a short summary."""
+    try:
+        cmd = [sys.executable, 'check_id_completeness.py']
+        log_print('\n🔎 Running ID completeness check...')
+        result = subprocess.run(cmd, cwd=os.getcwd())
+        if result.returncode == 0:
+            log_print('✅ ID completeness check finished')
+            return True
+        else:
+            log_print('❌ ID completeness check reported issues')
+            return False
+    except Exception as e:
+        log_print(f"❌ Error running completeness check: {e}")
+        return False
+
 def run_sort_step():
     """Run sorting step with configuration."""
     log_print("\n📋 Cấu hình phân loại:")
@@ -211,7 +228,8 @@ def run_individual_step():
         ("download_from_dropbox.py", "Tải file từ Dropbox"),
         ("sort_cli.py", "Phân loại file thêu"),
         ("export_dst.py", "Xuất file DST"),
-        ("map_dst_labels.py", "Gắn nhãn DST")
+        ("map_dst_labels.py", "Gắn nhãn DST"),
+        ("check_id_completeness.py", "Kiểm tra tính đầy đủ ID")
     ]
     
     log_print("\nCác bước có thể chạy:")
@@ -220,19 +238,22 @@ def run_individual_step():
     
     while True:
         try:
-            choice = input("\nChọn bước (1-4) hoặc 'b' để quay lại: ").strip().lower()
+            choice = input("\nChọn bước (1-5) hoặc 'b' để quay lại: ").strip().lower()
             
             if choice == 'b':
                 return
             
             step_num = int(choice)
-            if 1 <= step_num <= 4:
+            if 1 <= step_num <= 5:
                 script, description = steps[step_num - 1]
                 
                 if step_num == 2:  # Sort step needs special handling
                     success = run_sort_step()
                 else:
                     success = run_script(script, description)
+                    # If this was the download step, run completeness check
+                    if script == 'download_from_dropbox.py' and success:
+                        run_check_completeness()
                 
                 if success:
                     log_print(f"✅ {description} completed successfully!")
@@ -240,7 +261,7 @@ def run_individual_step():
                     log_print(f"❌ {description} failed!")
                 break
             else:
-                log_print("❌ Vui lòng chọn số từ 1-4")
+                log_print("❌ Vui lòng chọn số từ 1-5")
                 
         except ValueError:
             log_print("❌ Vui lòng nhập số hợp lệ")
@@ -280,6 +301,9 @@ def run_all_steps():
         
         else:
             success = run_script(script, description)
+        # After download step, run completeness check
+        if script == 'download_from_dropbox.py' and success:
+            run_check_completeness()
         
         if not success:
             failed_steps.append(f"Bước {i}: {description}")
