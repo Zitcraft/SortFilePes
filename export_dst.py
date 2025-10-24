@@ -53,7 +53,7 @@ def get_position_code(position):
 def get_month_code():
     """Get current month as alphabet (a=Jan, b=Feb, ..., j=Oct)"""
     month = datetime.now().month
-    return chr(ord('a') + month - 1)
+    return chr(ord('A') + month - 1)
 
 
 def generate_dst_name(folder_order, person, total_faces, position, day):

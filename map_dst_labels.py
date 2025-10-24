@@ -113,8 +113,8 @@ def process_label_image(image_path, dst_names):
     """Process a single label image to add DST content."""
     try:
         # Tham số crop và text spacing (có thể điều chỉnh)
-        top = 32
-        bottom = 32
+        top = 30
+        bottom = 30
         font_size = 18
         letter_spacing = 3
         color = (0,0,0,255)
@@ -140,11 +140,10 @@ def process_label_image(image_path, dst_names):
             dst_lines.append(" | ".join(dst_names[:2]))
             dst_lines.append(" | ".join(dst_names[2:4]))
         # Vẽ từng dòng DST
-        y = 5
+        y = -2
         for line in dst_lines:
-            y = -2
             draw_text_spacing(canvas, line, font, color, (11, y), letter_spacing, simulate_bold=sim_bold)
-            y += font.size + 4  # cách dòng
+            y += font_size + 4 # cách dòng
         canvas.save(image_path, "PNG")
         return True
     except Exception as e:
