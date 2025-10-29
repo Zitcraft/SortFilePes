@@ -294,6 +294,7 @@ def main():
     parser.add_argument('--start', type=int, help='Start ID for range filtering (inclusive)')
     parser.add_argument('--end', type=int, help='End ID for range filtering (inclusive)')
     parser.add_argument('--range', action='store_true', help='Use interactive range selection')
+    parser.add_argument('--ids', type=str, help='Comma-separated list of order IDs to download (e.g. 3784,3787,3788)')
     
     args = parser.parse_args()
     
@@ -303,13 +304,14 @@ def main():
     auto_confirm = os.environ.get('AUTO_CONFIRM')
     
     # If no specific option is provided, show interactive prompt
-    if not any([args.design, args.label, args.all, args.list, args.range]):
+    if not any([args.design, args.label, args.all, args.list, args.range, args.ids]):
         print("Chọn tùy chọn:")
         print("1. Tải chỉ design files (.pes)")
         print("2. Tải chỉ label files (.png/.pdf/.jpg/.svg)")
         print("3. Tải tất cả files")
         print("4. Liệt kê files trong Dropbox")
         print("5. Chọn range ID để tải")
+        print("6. Nhập danh sách ID order thủ công (comma-separated)")
         print()
         
         # Use auto option if in partial auto mode
@@ -317,7 +319,7 @@ def main():
             choice = auto_option
             print(f"🤖 Auto mode: Chọn option {choice}")
         else:
-            choice = input("Nhập lựa chọn (1-5) hoặc 'q' để thoát: ").strip()
+            choice = input("Nhập lựa chọn (1-6) hoặc 'q' để thoát: ").strip()
         
         if choice == 'q':
             print("Đã hủy bỏ.")
@@ -333,6 +335,14 @@ def main():
         elif choice == '5':
             args.range = True
             args.all = True  # Default to all files for range selection
+        elif choice == '6':
+            ids_input = input("Nhập danh sách ID (ví dụ: 3784,3787,3788): ").strip()
+            if ids_input:
+                args.ids = ids_input
+                # parse below will convert to set
+            else:
+                print("Không có ID hợp lệ được nhập. Quay lại menu.")
+                return
         else:
             print("Lựa chọn không hợp lệ. Mặc định tải design files.")
             args.design = True
@@ -369,14 +379,32 @@ def main():
     os.makedirs("files/design", exist_ok=True)
     os.makedirs("files/labels", exist_ok=True)
     
-    # Get API IDs
-    target_ids = get_order_ids_from_api()
-    
+    # If user provided --ids or entered manual ids, parse them into a set; otherwise fetch from API
+    if args.ids:
+        try:
+            provided = [int(x.strip()) for x in args.ids.split(',') if x.strip()]
+            target_ids = set(provided)
+            print(f"Using provided IDs: {sorted(list(target_ids))}")
+            # If the user provided explicit IDs but didn't choose what to download,
+            # default to downloading both design and labels to match interactive intent.
+            if not any([args.design, args.label, args.all]):
+                args.all = True
+                print("No file type specified for provided IDs — defaulting to download both design and labels.")
+        except Exception as e:
+            print(f"Error parsing provided IDs: {e}")
+            return
+    else:
+        target_ids = get_order_ids_from_api()
+
     if not target_ids:
-        print("No IDs found from API. Exiting...")
+        print("No IDs found. Exiting...")
         return
-    
-    print(f"Total IDs from API: {len(target_ids)} IDs")
+
+    # Show a clearer message depending on where IDs came from
+    if args.ids:
+        print(f"Total provided IDs: {len(target_ids)} IDs")
+    else:
+        print(f"Total IDs from API: {len(target_ids)} IDs")
     
     # Apply range filtering if specified
     if args.range or args.start is not None or args.end is not None:
@@ -436,93 +464,159 @@ def main():
         
         # Ask if user wants to retry
         print()
-        retry = input("Bạn có muốn thử tải lại các file bị thiếu? (y/N): ").strip().lower()
-        if retry in ['y', 'yes']:
-            print("\n🔄 Đang thử tải lại các file bị thiếu...")
-            retry_missing_files(missing_list, args)
+        # retry = input("Bạn có muốn thử tải lại các file bị thiếu? (y/N): ").strip().lower()
+        # if retry in ['y', 'yes']:
+        print("\n🔄 Đang cố gắng đồng bộ (sync) các ID bị thiếu trước khi tải lại...")
+        re_download(missing_list, args)
     else:
         print("✅ All requested files found and copied successfully!")
     print()
 
-def retry_missing_files(missing_ids, args):
-    """Retry downloading missing files with different approach."""
-    print(f"Đang thử tải lại {len(missing_ids)} ID bị thiếu...")
-    
-    # Get Dropbox path
+def check_order_blankshirt(id_list: List[int], api_key: str = "yoXIxxKk-3Ps5-i5IG-dri8") -> List[int]:
+    """Return subset of ids that are blankshirt products by querying the order API."""
+    blankshirt_ids = []
+    for oid in id_list:
+        try:
+            url = f"https://lemiex.us/api/order/{oid}?api_key={api_key}"
+            resp = requests.get(url, timeout=15)
+            if resp.status_code != 200:
+                print(f"Warning: order {oid} API returned {resp.status_code}")
+                continue
+            data = resp.json()
+            items = data.get('items', [])
+            for it in items:
+                if isinstance(it, dict):
+                    pname = it.get('product_name')
+                    if isinstance(pname, str) and pname.lower() == 'blankshirt':
+                        blankshirt_ids.append(oid)
+                        break
+        except Exception as e:
+            print(f"Error checking order {oid}: {e}")
+    return blankshirt_ids
+
+
+def sync_missing_ids(missing_ids: List[int]) -> bool:
+    """Call sync API to request Dropbox sync for missing IDs."""
+    try:
+        ids_param = ','.join(map(str, missing_ids))
+        url = f"https://lemiex.us/api/sync-confirm?ids={ids_param}"
+        print(f"Calling sync API: {url}")
+        resp = requests.get(url, timeout=20)
+        if resp.status_code in (200, 204):
+            print("Sync request accepted")
+            return True
+        else:
+            print(f"Sync API responded with status {resp.status_code}")
+            return False
+    except Exception as e:
+        print(f"Error calling sync API: {e}")
+        return False
+
+
+def re_download(missing_ids: List[int], args):
+    """Attempt to sync missing IDs then re-download up to 3 attempts.
+
+    Labels are always downloaded. Design files are skipped for orders that are blankshirt.
+    """
+    print(f"Starting re-download for {len(missing_ids)} missing IDs")
     user_dir = os.path.expanduser("~")
     dropbox_base = Path(os.path.join(user_dir, "Dropbox"))
-    
+
     if not dropbox_base.exists():
         print(f"❌ Dropbox folder not found: {dropbox_base}")
         return
-    
-    # Convert to set for faster lookup
-    missing_set = set(missing_ids)
-    retry_copied = 0
-    retry_errors = 0
-    
-    # Process design files if requested
-    if args.design or args.all:
-        print("\n📁 Retry: Processing design files...")
-        design_source = dropbox_base / "designpes" 
-        design_dest = Path("files/design")
-        
-        if design_source.exists():
-            for file in design_source.glob("*.pes"):
+
+    # Determine blankshirt IDs to skip design
+    blank_ids = check_order_blankshirt(missing_ids)
+    if blank_ids:
+        print(f"Blankshirt IDs (will skip design): {blank_ids}")
+
+    # Call sync initially, then poll Dropbox until all IDs recovered.
+    remaining = set(missing_ids)
+
+    print("Requesting initial sync for missing IDs...")
+    sync_missing_ids(list(remaining))
+
+    label_source = dropbox_base / "labels"
+    design_source = dropbox_base / "designpes"
+    label_dest = Path("files/labels")
+    design_dest = Path("files/design")
+
+    poll_count = 0
+    # Poll until remaining is empty
+    while remaining:
+        poll_count += 1
+        found_this_round = set()
+
+        # Check each remaining ID for presence: labels (.png) required; design (.pes) required unless blankshirt
+        for fid in list(remaining):
+            label_found = False
+            design_found = False
+
+            # Check label (.png) presence
+            if label_source.exists():
+                # look for any png starting with fid_
+                matches = list(label_source.glob(f"{fid}_*.png"))
+                if matches:
+                    label_found = True
+            # Check design (.pes) presence unless blankshirt
+            if fid in blank_ids:
+                design_found = True
+            else:
+                if design_source.exists():
+                    matches_design = list(design_source.glob(f"{fid}_*.pes"))
+                    if matches_design:
+                        design_found = True
+
+            # If both present (or design skipped), copy files
+            if label_found and design_found:
+                # copy all label pngs for this fid
                 try:
-                    # Extract ID from filename
-                    parts = file.name.split("_")
-                    if parts and parts[0].isdigit():
-                        file_id = int(parts[0])
-                        if file_id in missing_set:
-                            dest_file = design_dest / file.name
-                            if not dest_file.exists():  # Only copy if not already exists
-                                shutil.copy2(file, dest_file)
-                                print(f"✅ Retry copied: {file.name}")
-                                retry_copied += 1
-                                missing_set.discard(file_id)
-                except Exception as e:
-                    retry_errors += 1
-                    print(f"❌ Retry error: {file.name} - {e}")
-    
-    # Process label files if requested
-    if args.label or args.all:
-        print("\n📁 Retry: Processing label files...")
-        label_source = dropbox_base / "labels"
-        label_dest = Path("files/labels")
-        
-        if label_source.exists():
-            for ext in ['*.pdf', '*.png', '*.jpg', '*.jpeg', '*.svg']:
-                for file in label_source.glob(ext):
-                    try:
-                        # Extract ID from filename
-                        parts = file.name.split("_")
-                        if parts and parts[0].isdigit():
-                            file_id = int(parts[0])
-                            if file_id in missing_set:
+                    if label_source.exists():
+                        for file in label_source.glob(f"{fid}_*.png"):
+                            try:
                                 dest_file = label_dest / file.name
-                                if not dest_file.exists():  # Only copy if not already exists
+                                if not dest_file.exists():
                                     shutil.copy2(file, dest_file)
-                                    print(f"✅ Retry copied: {file.name}")
-                                    retry_copied += 1
-                                    missing_set.discard(file_id)
-                    except Exception as e:
-                        retry_errors += 1
-                        print(f"❌ Retry error: {file.name} - {e}")
-    
-    # Show retry results
-    still_missing = sorted(list(missing_set))
-    print(f"\n=== RETRY RESULTS ===")
-    print(f"Retry copied: {retry_copied} files")
-    print(f"Retry errors: {retry_errors} files")
-    
-    if still_missing:
-        print(f"⚠️  Still missing {len(still_missing)} IDs: {still_missing}")
-    else:
-        print("✅ All missing files have been found and copied!")
-        print("✅ All requested IDs were found and processed")
-    
-    print("Done!")
+                                    print(f"✅ Re-downloaded label: {file.name}")
+                            except Exception as e:
+                                print(f"Error copying label {file.name}: {e}")
+                except Exception:
+                    pass
+
+                # copy all design pes for this fid (if not blankshirt)
+                if fid not in blank_ids and design_source.exists():
+                    try:
+                        for file in design_source.glob(f"{fid}_*.pes"):
+                            try:
+                                dest_file = design_dest / file.name
+                                if not dest_file.exists():
+                                    shutil.copy2(file, dest_file)
+                                    print(f"✅ Re-downloaded design: {file.name}")
+                            except Exception as e:
+                                print(f"Error copying design {file.name}: {e}")
+                    except Exception:
+                        pass
+
+                found_this_round.add(fid)
+
+        # Remove found IDs
+        if found_this_round:
+            remaining -= found_this_round
+            print(f"Recovered IDs this poll: {sorted(list(found_this_round))}")
+            print(f"IDs remaining: {sorted(list(remaining))}")
+        else:
+            print(f"No new files found in this poll. IDs still missing: {sorted(list(remaining))}")
+
+        # Re-request sync every 18 polls (~180s if sleep 10s)
+        if poll_count % 18 == 0:
+            print("Re-requesting sync from API for remaining IDs...")
+            sync_missing_ids(list(remaining))
+
+        # Sleep between polls
+        time.sleep(10)
+
+    print("✅ All missing IDs recovered and re-downloaded.")
 
 def list_dropbox_files():
     """List all files in Dropbox folders for debugging"""

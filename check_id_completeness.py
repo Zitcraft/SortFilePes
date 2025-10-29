@@ -158,6 +158,7 @@ def print_report(title: str, results: List[Dict]):
     no_expected = [r for r in results if r['expected_items'] is None]
     print(f'Total distinct order IDs scanned: {total}')
     print(f'IDs with missing/extra files: {len(incomplete)}')
+    print('')
     # print(f'IDs where "item_N" could not be extracted: {len(no_expected)}')
 
     # if incomplete:
