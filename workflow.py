@@ -8,45 +8,7 @@ import os
 import sys
 import subprocess
 from pathlib import Path
-import logging
-from datetime import datetime
-
-# Setup logging
-def setup_logging():
-    """Setup logging to both console and file."""
-    log_file = "workflow_log.txt"
-    
-    # Create logger
-    logger = logging.getLogger('workflow')
-    logger.setLevel(logging.DEBUG)
-    
-    # Clear existing handlers
-    logger.handlers.clear()
-    
-    # Create formatters
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    
-    # File handler
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
-    
-    # Console handler
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.INFO)
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-    
-    return logger
-
-# Initialize logger
-logger = setup_logging()
-
-def log_print(message):
-    """Print and log message."""
-    # print(message)
-    logger.info(message)
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 def check_requirements():
     """Check if all required scripts exist."""
@@ -79,7 +41,7 @@ def run_script_with_input(script_name, description, auto_inputs=None, args=None)
         # Prepare input string
         input_text = ""
         if auto_inputs:
-            input_text = "\n".join(str(inp) for inp in auto_inputs) + "\n"
+            input_text = "".join(str(inp) for inp in auto_inputs) + ""
         
         log_print("="*60)
         log_print(f"RUNNING: {description}")
@@ -160,7 +122,7 @@ def run_check_completeness():
     """Run check_id_completeness.py and log a short summary."""
     try:
         cmd = [sys.executable, 'check_id_completeness.py']
-        log_print('\n🔎 Running ID completeness check...')
+        log_print('🔎 Running ID completeness check...')
         result = subprocess.run(cmd, cwd=os.getcwd())
         if result.returncode == 0:
             log_print('✅ ID completeness check finished')
@@ -174,7 +136,7 @@ def run_check_completeness():
 
 def run_sort_step():
     """Run sorting step with configuration."""
-    log_print("\n📋 Cấu hình phân loại:")
+    log_print("📋 Cấu hình phân loại:")
     log_print("   1 = Một người (folder A)")
     log_print("   2 = Hai người (folders A, B)")
     log_print("   3 = Ba người (folders A, B, C)")
@@ -182,7 +144,7 @@ def run_sort_step():
     
     while True:
         try:
-            folders = input("\nNhập số người (1-4, mặc định 4): ").strip()
+            folders = logged_input("Nhập số người (1-4, mặc định 4): ").strip()
             if not folders:
                 folders = "4"
             
@@ -199,7 +161,7 @@ def run_sort_step():
 
 def show_status():
     """Show current directory status."""
-    log_print("\n📊 TRẠNG THÁI THU MỤC:")
+    log_print("📊 TRẠNG THÁI THU MỤC:")
     
     dirs_to_check = [
         ("files/design", "Design files (.pes)"),
@@ -232,13 +194,13 @@ def run_individual_step():
         ("check_id_completeness.py", "Kiểm tra tính đầy đủ ID")
     ]
     
-    log_print("\nCác bước có thể chạy:")
+    log_print("Các bước có thể chạy:")
     for i, (script, desc) in enumerate(steps, 1):
         log_print(f"{i}. {desc}")
     
     while True:
         try:
-            choice = input("\nChọn bước (1-5) hoặc 'b' để quay lại: ").strip().lower()
+            choice = logged_input("Chọn bước (1-5) hoặc 'b' để quay lại: ").strip().lower()
             
             if choice == 'b':
                 return
@@ -275,8 +237,8 @@ def run_all_steps():
         ("map_dst_labels.py", "Gắn nhãn DST", "auto_confirm")
     ]
     
-    log_print("\n🚀 Chạy tất cả các bước tự động...")
-    confirm = input("Bạn có chắc chắn? (y/N): ").strip().lower()
+    log_print("🚀 Chạy tất cả các bước tự động...")
+    confirm = logged_input("Bạn có chắc chắn? (y/N): ").strip().lower()
     
     if confirm != 'y':
         log_print("❌ Hủy bỏ")
@@ -285,7 +247,7 @@ def run_all_steps():
     failed_steps = []
     
     for i, (script, description, special) in enumerate(steps, 1):
-        log_print(f"\n📍 Đang chạy bước {i}/4: {description}")
+        log_print(f"📍 Đang chạy bước {i}/4: {description}")
         
         if special == "special" and script == "sort_cli.py":
             success = run_sort_step()
@@ -308,7 +270,7 @@ def run_all_steps():
         if not success:
             failed_steps.append(f"Bước {i}: {description}")
     
-    log_print(f"\n{'='*60}")
+    log_print(f"{'='*60}")
     if failed_steps:
         log_print("❌ CÁC BƯỚC BỊ LỖI:")
         for step in failed_steps:
@@ -323,24 +285,24 @@ def main():
     log_print("EMBROIDERY MANAGEMENT WORKFLOW")
     log_print("="*60)
     
-    log_print("\nQuy trình hoàn chỉnh (4 bước):")
-    log_print("\n1. 📥 Tải file từ Dropbox")
+    log_print("Quy trình hoàn chỉnh (4 bước):")
+    log_print("1. 📥 Tải file từ Dropbox")
     log_print("   - Download .pes files → files/design/")
     log_print("   - Download labels → files/labels/")
     
-    log_print("\n2. 📂 Phân loại file")
+    log_print("2. 📂 Phân loại file")
     log_print("   - Phân tích và nhóm file .pes")
     log_print("   - Tạo folders A/B/C trong sorted/")
     log_print("   - Di chuyển files vào folders (move)")
     log_print("   - Labels ở lại files/labels/ (sẽ xử lý ở bước 4)")
     log_print("   - Tạo CSV/XLSX reports")
     
-    log_print("\n3. 🎯 Xuất file DST")
+    log_print("3. 🎯 Xuất file DST")
     log_print("   - Chuyển .pes → .dst với tên XXXYLZMDD")
     log_print("   - Xử lý multi-face items")
     log_print("   - Lưu vào sorted/*/dst/")
     
-    log_print("\n4. 🏷️  Gắn nhãn DST")
+    log_print("4. 🏷️  Gắn nhãn DST")
     log_print("   - Đọc DST mapping log")
     log_print("   - Di chuyển labels có DST vào sorted/*/labels/")
     log_print("   - Gắn tên DST vào PNG labels")
@@ -348,18 +310,18 @@ def main():
     log_print("   - Labels không có DST ở lại files/labels/")
     
     # Check requirements
-    log_print("\nChecking requirements...")
+    log_print("Checking requirements...")
     if not check_requirements():
         sys.exit(1)
     
     while True:
-        log_print("\nChọn tùy chọn:")
+        log_print("Chọn tùy chọn:")
         log_print("1. Chạy từng bước (có xác nhận cho mỗi bước)")
         log_print("2. Chạy tất cả (auto mode)")
         log_print("3. Chạy bước cụ thể")
         log_print("4. Hiển thị trạng thái thư mục")
         
-        choice = input("\nNhập lựa chọn (1-4) hoặc 'q' để thoát: ").strip().lower()
+        choice = logged_input("Nhập lựa chọn (1-4) hoặc 'q' để thoát: ").strip().lower()
         
         if choice == 'q':
             log_print("👋 Tạm biệt!")

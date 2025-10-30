@@ -13,6 +13,7 @@ import shutil
 from PIL import Image, ImageDraw, ImageFont
 from collections import defaultdict
 import sys
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 def draw_text_spacing(img, text, font, color, start=(1,1), letter_spacing=1, simulate_bold=False):
     draw = ImageDraw.Draw(img)
@@ -35,7 +36,7 @@ def draw_text_spacing(img, text, font, color, start=(1,1), letter_spacing=1, sim
 def load_dst_log(log_path="sorted/output/dst_export_log.json"):
     """Load DST export log and group by item IDs."""
     if not os.path.exists(log_path):
-        print(f"Error: DST log file not found: {log_path}")
+        log_print(f"Error: DST log file not found: {log_path}")
         return None
     
     with open(log_path, 'r', encoding='utf-8') as f:
@@ -61,14 +62,14 @@ def load_dst_log(log_path="sorted/output/dst_export_log.json"):
             'person': data['person']
         }
     
-    print(f"Loaded DST mappings for {len(result)} items")
+    log_print(f"Loaded DST mappings for {len(result)} items")
     return result
 
 def find_source_label_files():
     """Find all PNG label files in files/labels/ directory."""
     labels_dir = "files/labels"
     if not os.path.exists(labels_dir):
-        print(f"Error: Labels directory not found: {labels_dir}")
+        log_print(f"Error: Labels directory not found: {labels_dir}")
         return []
     
     label_files = []
@@ -76,7 +77,7 @@ def find_source_label_files():
         if file.endswith('.png'):
             label_files.append(os.path.join(labels_dir, file))
     
-    print(f"Found {len(label_files)} PNG label files in {labels_dir}")
+    log_print(f"Found {len(label_files)} PNG label files in {labels_dir}")
     return label_files
 
 def extract_item_id_from_filename(filename):
@@ -123,7 +124,7 @@ def process_label_image(image_path, dst_names):
         img = Image.open(image_path).convert('RGBA')
         w, h = img.size
         if h <= bottom:
-            print(f"Ảnh quá nhỏ so với bottom crop: {image_path}")
+            log_print(f"Ảnh quá nhỏ so với bottom crop: {image_path}")
             return False
         base = img
         cropped = base.crop((0,0,w,h-bottom))
@@ -147,7 +148,7 @@ def process_label_image(image_path, dst_names):
         canvas.save(image_path, "PNG")
         return True
     except Exception as e:
-        print(f"Error processing {os.path.basename(image_path)}: {e}")
+        log_print(f"Error processing {os.path.basename(image_path)}: {e}")
         return False
 
 def move_and_process_label(source_path, item_id, dst_info, move_files=True):
@@ -180,14 +181,14 @@ def move_and_process_label(source_path, item_id, dst_info, move_files=True):
         
         # Process the image to add DST text
         if process_label_image(dest_path, dst_names):
-            print(f"[SUCCESS] {action.capitalize()} and processed: {original_filename} -> {new_filename} -> Person {person} -> DST: {dst_names}")
+            log_print(f"[SUCCESS] {action.capitalize()} and processed: {original_filename} -> {new_filename} -> Person {person} -> DST: {dst_names}")
             return True
         else:
-            print(f"[WARNING] {action.capitalize()} but failed to process: {new_filename}")
+            log_print(f"[WARNING] {action.capitalize()} but failed to process: {new_filename}")
             return False
             
     except Exception as e:
-        print(f"[ERROR] Failed to {action} {original_filename} -> {new_filename}: {e}")
+        log_print(f"[ERROR] Failed to {action} {original_filename} -> {new_filename}: {e}")
         return False
 
 def main():
@@ -196,30 +197,30 @@ def main():
     parser.add_argument('--copy', action='store_true', help='Copy files instead of moving (default: move)')
     args = parser.parse_args()
     
-    print("=" * 60)
-    print("DST LABEL MAPPER")
-    print("=" * 60)
-    print()
+    log_print("=" * 60)
+    log_print("DST LABEL MAPPER")
+    log_print("=" * 60)
+    log_print('')
     
     # Show what will happen
     action = "Copy" if args.copy else "Move"
-    print("Gan ten DST vao nhan PNG:")
-    print("- Doc log: sorted/output/dst_export_log.json")
-    print(f"- {action} tu: files/labels/*.png")
-    print("- Den: sorted/*/labels/*.png (chi nhung item co DST)")
-    print("- Gan DST vao goc tren-trai")
-    print("- Multi-face: 'DST1 | DST2 | DST3'")
-    print()
+    log_print("Gan ten DST vao nhan PNG:")
+    log_print("- Doc log: sorted/output/dst_export_log.json")
+    log_print(f"- {action} tu: files/labels/*.png")
+    log_print("- Den: sorted/*/labels/*.png (chi nhung item co DST)")
+    log_print("- Gan DST vao goc tren-trai")
+    log_print("- Multi-face: 'DST1 | DST2 | DST3'")
+    log_print('')
     
     # confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
     # if confirm not in ['y', 'yes']:
-    #     print("Da huy bo.")
+    #     log_print("Da huy bo.")
     #     return
-    # print()
+    # log_print()
     
-    print("DST Label Mapper")
-    print("================")
-    print()
+    log_print("DST Label Mapper")
+    log_print("================")
+    log_print('')
     
     # Load DST mappings
     item_dst_map = load_dst_log()
@@ -229,7 +230,7 @@ def main():
     # Find label files in source directory
     label_files = find_source_label_files()
     if not label_files:
-        print("No PNG label files found in files/labels/")
+        log_print("No PNG label files found in files/labels/")
         return
     
     # Process each label file
@@ -240,12 +241,12 @@ def main():
         item_id = extract_item_id_from_filename(label_path)
         
         if item_id is None:
-            print(f"Could not extract item ID from: {os.path.basename(label_path)}")
+            log_print(f"Could not extract item ID from: {os.path.basename(label_path)}")
             skipped_count += 1
             continue
         
         if item_id not in item_dst_map:
-            print(f"No DST mapping found for item {item_id} in {os.path.basename(label_path)} - keeping in files/labels/")
+            log_print(f"No DST mapping found for item {item_id} in {os.path.basename(label_path)} - keeping in files/labels/")
             skipped_count += 1
             continue
         
@@ -255,20 +256,20 @@ def main():
         else:
             skipped_count += 1
     
-    print("\n" + "="*50)
-    print(f"Processing complete!")
-    print(f"Processed: {processed_count} files")
-    print(f"Skipped: {skipped_count} files")
-    print(f"Total: {len(label_files)} files")
+    log_print("="*50)
+    log_print(f"Processing complete!")
+    log_print(f"Processed: {processed_count} files")
+    log_print(f"Skipped: {skipped_count} files")
+    log_print(f"Total: {len(label_files)} files")
     
     # Show examples of multi-face items
     multi_face_items = {k: v for k, v in item_dst_map.items() if len(v['dst_names']) > 1}
     if multi_face_items:
-        print(f"\nMulti-face items processed:")
+        log_print(f"Multi-face items processed:")
         for item_id, info in sorted(multi_face_items.items()):
             dst_names = info['dst_names']
             person = info['person']
-            print(f"  Item {item_id} (Person {person}): {' | '.join(dst_names)}")
+            log_print(f"  Item {item_id} (Person {person}): {' | '.join(dst_names)}")
 
 if __name__ == "__main__":
     main()

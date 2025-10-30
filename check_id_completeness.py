@@ -19,6 +19,7 @@ import os
 import re
 from collections import defaultdict
 from typing import Dict, List, Tuple
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 # Capture optional faces info like _2_1_ (total_faces=2, face_index=1) before item_N
 FILENAME_RE = re.compile(
@@ -148,45 +149,45 @@ def analyze_mapping(mapping: Dict[str, List[Tuple[str, int, int, int, int, str]]
     return results
 
 
-def print_report(title: str, results: List[Dict]):
-    print('\n' + '=' * 60)
-    print(title)
-    print('=' * 60)
+def log_print_report(title: str, results: List[Dict]):
+    log_print('=' * 60)
+    log_print(title)
+    log_print('=' * 60)
     total = len(results)
     # incomplete if expected_files known and mismatch
     incomplete = [r for r in results if r['expected_files'] is not None and r['actual'] != r['expected_files']]
     no_expected = [r for r in results if r['expected_items'] is None]
-    print(f'Total distinct order IDs scanned: {total}')
-    print(f'IDs with missing/extra files: {len(incomplete)}')
-    print('')
-    # print(f'IDs where "item_N" could not be extracted: {len(no_expected)}')
+    log_print(f'Total distinct order IDs scanned: {total}')
+    log_print(f'IDs with missing/extra files: {len(incomplete)}')
+    log_print('')
+    # log_print(f'IDs where "item_N" could not be extracted: {len(no_expected)}')
 
     # if incomplete:
-    #     print('\n-- Detailed mismatches --')
+    #     log_print('\n-- Detailed mismatches --')
     #     for r in incomplete:
-    #         print(f"Order ID: {r['order']}: expected {r['expected_items']} items x {r['faces_per_item']} faces = {r['expected_files']} files, found {r['actual']}")
+    #         log_print(f"Order ID: {r['order']}: expected {r['expected_items']} items x {r['faces_per_item']} faces = {r['expected_files']} files, found {r['actual']}")
     #         if r['missing_subids']:
-    #             print(f"  Missing item subids (guessed): {r['missing_subids']}")
-    #         # Do not print per-subid face missing details (keeps report concise).
+    #             log_print(f"  Missing item subids (guessed): {r['missing_subids']}")
+    #         # Do not log_print per-subid face missing details (keeps report concise).
     #         # show a short file sample (up to 6)
     #         sample = sorted(r['filenames'])[:6]
-    #         print('  Sample present files:')
+    #         log_print('  Sample present files:')
     #         for fn in sample:
-    #             print('   -', fn)
+    #             log_print('   -', fn)
     #         if len(r['filenames']) > len(sample):
-    #             print(f"   ... and {len(r['filenames'])-len(sample)} more files")
-    #         print('')
+    #             log_print(f"   ... and {len(r['filenames'])-len(sample)} more files")
+    #         log_print('')
 
     if no_expected:
-        print("\n-- Files that didn't match the expected filename pattern --")
+        log_print("-- Files that didn't match the expected filename pattern --")
         for r in no_expected:
-            print(f"Order ID: {r['order']}, files: {len(r['filenames'])}")
+            log_print(f"Order ID: {r['order']}, files: {len(r['filenames'])}")
 
-    # Print a concise list of IDs with mismatches
+    # log_print a concise list of IDs with mismatches
     if incomplete:
         ids = [int(r['order']) for r in incomplete]
         ids.sort()
-        print('\nSummary - IDs with mismatches:', ids)
+        log_print(f'Summary - IDs with mismatches: {ids}')
 
 
 def main():
@@ -205,7 +206,7 @@ def main():
         mapping = scan_folder(path, [e.lower() for e in args.exts])
         is_label = folder.lower() == 'labels'
         results = analyze_mapping(mapping, is_label=is_label)
-        print_report(f"Scan results for: {path}", results)
+        log_print_report(f"Scan results for: {path}", results)
         all_results[folder] = results
 
     # Optionally write CSV
@@ -230,9 +231,9 @@ def main():
                             per_subid_missing_str,
                             '|'.join(r.get('filenames', [])),
                         ])
-            print('\nCSV report written to', args.report_csv)
+            log_print(f'CSV report written to: {args.report_csv}')
         except Exception as e:
-            print('Failed to write CSV report:', e)
+            log_print(f'Failed to write CSV report: {e}')
 
 
 if __name__ == '__main__':

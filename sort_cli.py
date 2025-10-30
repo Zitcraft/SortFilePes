@@ -8,6 +8,7 @@ import argparse
 import sys
 import shutil
 from pathlib import Path
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 from embroidery_sorter import (
     EmbroideryCore, 
@@ -30,35 +31,35 @@ def main(argv=None):
     p.add_argument("--people", type=int, default=Config.DEFAULT_PEOPLE_COUNT, help="Number of people to assign work to")
     args = p.parse_args(argv)
     
-    print("=" * 60)
-    print("EMBROIDERY FILE SORTER")
-    print("=" * 60)
-    print()
+    log_print("=" * 60)
+    log_print("EMBROIDERY FILE SORTER")
+    log_print("=" * 60)
+    log_print('')
     
     # Show what will happen
-    print("Phan loai file theu:")
-    print("- Nguon: files/design/ (file .pes)")
-    print("- Dich: sorted/ (phan loai A/B/C/D)")
-    print("- Person weights: A(1.0), B(1.0), C(0.7), D(0.2)")
-    print("- Sao chep nhan tu files/labels/ vao sorted/*/labels/")
-    print("- Tao CSV/XLSX voi folder_order va unique_hashes")
-    print()
+    log_print("Phan loai file theu:")
+    log_print("- Nguon: files/design/ (file .pes)")
+    log_print("- Dich: sorted/ (phan loai A/B/C/D)")
+    log_print("- Person weights: A(1.0), B(1.0), C(0.7), D(0.2)")
+    log_print("- Sao chep nhan tu files/labels/ vao sorted/*/labels/")
+    log_print("- Tao CSV/XLSX voi folder_order va unique_hashes")
+    log_print('')
     
     # confirm = input("Ban co muon tiep tuc? (y/N): ").strip().lower()
     # if confirm not in ['y', 'yes']:
-    #     print("Da huy bo.")
+    #     log_print("Da huy bo.")
     #     return
-    # print()
+    # log_print()
 
     src = Path(args.src).resolve()
     dst = Path(args.dst).resolve()
 
     if not src.exists():
-        print(f"Source folder does not exist: {src}")
+        log_print(f"Source folder does not exist: {src}")
         return 2
 
-    print(f"Scanning source: {src}")
-    print(f"Output will be placed under: {dst} (move files: {not args.copy})")
+    log_print(f"Scanning source: {src}")
+    log_print(f"Output will be placed under: {dst} (move files: {not args.copy})")
 
     # Initialize components
     time_estimator = TimeEstimator()
@@ -78,11 +79,11 @@ def main(argv=None):
     # 1) Scan files and compute hash
     file_meta = EmbroideryCore.scan_pes_files(src)
     if not file_meta:
-        print("No .pes files found.")
+        log_print("No .pes files found.")
         return 0
 
     # 2) Estimate seconds for each file
-    print("Estimating embroidery time for each file (this may load PES files)...")
+    log_print("Estimating embroidery time for each file (this may load PES files)...")
     file_meta = time_estimator.estimate_time_for_files(file_meta)
 
     # 3) Build components so that same hash or same id_item stay together
@@ -103,8 +104,8 @@ def main(argv=None):
     # Note: Labels will be processed later by map_dst_labels.py
     summary = workload_assignment.get_assignment_summary(updated_meta)
 
-    # Print assignment summary
-    print(f"\nAssignment summary ({args.people} groups {', '.join(workload_assignment.person_labels)}):")
+    # log_print assignment summary
+    log_print(f"\nAssignment summary ({args.people} groups {', '.join(workload_assignment.person_labels)}):")
     for label in workload_assignment.person_labels:
         data = summary.get(label, {})
         file_count = data.get("file_count", 0)
@@ -112,7 +113,7 @@ def main(argv=None):
         adjusted_seconds = data.get("adjusted_seconds", 0.0)
         weight = data.get("weight", 1.0)
         weighted_load = data.get("weighted_load", 0.0)
-        print(f"Group {label}: {file_count} file(s), {TimeEstimator.human_readable(adjusted_seconds)} (weight: {weight}, load: {TimeEstimator.human_readable(weighted_load)})")
+        log_print(f"Group {label}: {file_count} file(s), {TimeEstimator.human_readable(adjusted_seconds)} (weight: {weight}, load: {TimeEstimator.human_readable(weighted_load)})")
 
     # 8) Export CSV if requested (timestamped) - Save to output folder in sorted directory
     if args.csv:
@@ -130,7 +131,7 @@ def main(argv=None):
         xlsx_path_ts = FileOperations.timestamped_path(xlsx_path)
         Exporters.export_xlsx(updated_meta, xlsx_path_ts, summary=summary, person_labels=workload_assignment.person_labels)
 
-    print("Done.")
+    log_print("Done.")
     return 0
 
 

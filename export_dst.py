@@ -10,6 +10,7 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 import pyembroidery
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 
 def parse_pes_filename(filename):
@@ -211,7 +212,7 @@ def export_pes_to_dst(pes_file_path, dst_file_path):
         return True
         
     except Exception as e:
-        print(f"❌ Error converting {pes_file_path} to DST: {e}")
+        log_print(f"❌ Error converting {pes_file_path} to DST: {e}")
         return False
 
 
@@ -258,42 +259,42 @@ def create_mapping_log(export_jobs, log_path):
     with open(log_path, 'w', encoding='utf-8') as f:
         json.dump(mapping_data, f, indent=2, ensure_ascii=False)
     
-    print(f"📋 Mapping log saved: {log_path}")
+    log_print(f"📋 Mapping log saved: {log_path}")
     
     return mapping_data
 
 
 def main():
     """Main function to export DST files"""
-    print("=" * 60)
-    print("DST FILE EXPORTER")
-    print("=" * 60)
-    print()
+    log_print("=" * 60)
+    log_print("DST FILE EXPORTER")
+    log_print("=" * 60)
+    log_print('')
     
     # Show what will happen
-    print("Xuất file DST từ file PES đã phân loại:")
-    print("- Nguồn: sorted/*/")
-    print("- Đích: sorted/*/dst/")
-    print("- Định dạng: XXXYLZMDD.dst")
-    print("- Xử lý multi-face items (front, sleeve_left, sleeve_right)")
-    print()
+    log_print("Xuất file DST từ file PES đã phân loại:")
+    log_print("- Nguồn: sorted/*/")
+    log_print("- Đích: sorted/*/dst/")
+    log_print("- Định dạng: XXXYLZMDD.dst")
+    log_print("- Xử lý multi-face items (front, sleeve_left, sleeve_right)")
+    log_print('')
     
     # confirm = input("Bạn có muốn tiếp tục? (y/N): ").strip().lower()
     # if confirm not in ['y', 'yes']:
-    #     print("Đã hủy bỏ.")
+    #     log_print("Đã hủy bỏ.")
     #     return
-    # print()
+    # log_print()
     
     sorted_dir = "sorted"
     
-    print("🎯 DST Export Tool")
-    print("=" * 50)
+    log_print("🎯 DST Export Tool")
+    log_print("=" * 50)
     
     # Check if sorted directory exists
     sorted_path = Path(sorted_dir)
     if not sorted_path.exists():
-        print(f"❌ Sorted directory not found: {sorted_dir}")
-        print("Please run the sort script first.")
+        log_print(f"❌ Sorted directory not found: {sorted_dir}")
+        log_print("Please run the sort script first.")
         return
     
     # Create output directory and log paths
@@ -302,7 +303,7 @@ def main():
     log_path = output_dir / "dst_export_log.json"
     
     # Scan folders and collect PES files
-    print("📁 Scanning sorted folders...")
+    log_print("📁 Scanning sorted folders...")
     folder_info = scan_sorted_folders(sorted_dir)
     
     total_folders = sum(len(person_folders) for person_folders in folder_info.values())
@@ -312,30 +313,30 @@ def main():
         for folder_data in person_folders.values()
     )
     
-    print(f"Found {total_folders} hash folders with {total_pes} PES files")
+    log_print(f"Found {total_folders} hash folders with {total_pes} PES files")
     
     # Group files for DST export
-    print("🔄 Grouping files for DST export...")
+    log_print("🔄 Grouping files for DST export...")
     export_jobs = group_files_for_dst_export(folder_info)
     
-    print(f"Generated {len(export_jobs)} DST export jobs")
+    log_print(f"Generated {len(export_jobs)} DST export jobs")
     
     # Show sample jobs
-    print("\n📋 Sample DST export jobs:")
+    log_print("📋 Sample DST export jobs:")
     for i, job in enumerate(export_jobs[:5]):
-        print(f"  {job['dst_name']} ← {len(job['pes_files'])} PES files from folder {job['folder_name']}")
+        log_print(f"  {job['dst_name']} ← {len(job['pes_files'])} PES files from folder {job['folder_name']}")
     
     if len(export_jobs) > 5:
-        print(f"  ... and {len(export_jobs) - 5} more jobs")
+        log_print(f"  ... and {len(export_jobs) - 5} more jobs")
     
     # Export DST files
-    print(f"\n⚙️  Exporting {len(export_jobs)} DST files...")
+    log_print(f"⚙️  Exporting {len(export_jobs)} DST files...")
     
     success_count = 0
     error_count = 0
     
     for i, job in enumerate(export_jobs):
-        print(f"Processing {i+1}/{len(export_jobs)}: {job['dst_name']}")
+        log_print(f"Processing {i+1}/{len(export_jobs)}: {job['dst_name']}")
         
         # For same hash folder, use the first PES file as template
         # (since they should have same embroidery pattern)
@@ -345,27 +346,27 @@ def main():
         
         if success:
             success_count += 1
-            print(f"✅ {job['dst_name']}")
+            log_print(f"✅ {job['dst_name']}")
         else:
             error_count += 1
     
     # Create mapping log
-    print(f"\n📝 Creating mapping log...")
+    log_print(f"📝 Creating mapping log...")
     create_mapping_log(export_jobs, log_path)
     
     # Final summary
-    print(f"\n🎉 Export Summary:")
-    print(f"  DST files created: {success_count}")
-    print(f"  Errors: {error_count}")
-    print(f"  Mapping log saved: {log_path}")
+    log_print(f"🎉 Export Summary:")
+    log_print(f"  DST files created: {success_count}")
+    log_print(f"  Errors: {error_count}")
+    log_print(f"  Mapping log saved: {log_path}")
     
     # Show folder structure
-    print(f"\n📂 DST files location:")
+    log_print(f"📂 DST files location:")
     for person in sorted(folder_info.keys()):
         person_dst_count = sum(1 for job in export_jobs if job['person'] == person)
-        print(f"  {sorted_dir}/{person}/dst/ ({person_dst_count} DST files)")
+        log_print(f"  {sorted_dir}/{person}/dst/ ({person_dst_count} DST files)")
     
-    print("Done!")
+    log_print("Done!")
 
 
 if __name__ == "__main__":
