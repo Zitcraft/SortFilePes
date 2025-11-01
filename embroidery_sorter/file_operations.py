@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from .config import Config
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 
 class FileOperations:
@@ -96,7 +97,7 @@ class FileOperations:
             newm["person_label"] = label
             newm["folder_order"] = order_num  # Add folder order for this person
             updated_meta.append(newm)
-            print(f"Assigned {m['name']} -> {label}/pes/{grp_name}/")
+            log_print(f"Assigned {m['name']} -> {label}/pes/{grp_name}/")
 
         return updated_meta
 
@@ -135,7 +136,7 @@ class FileOperations:
             newm["dst_path"] = dest
             updated_meta.append(newm)
             hash_folder[h8] = grp_path
-            print(f"Assigned {m['name']} -> {grp_name}/")
+            log_print(f"Assigned {m['name']} -> {grp_name}/")
 
         return updated_meta, hash_folder
 

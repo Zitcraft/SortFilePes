@@ -105,7 +105,7 @@ def main(argv=None):
     summary = workload_assignment.get_assignment_summary(updated_meta)
 
     # log_print assignment summary
-    log_print(f"\nAssignment summary ({args.people} groups {', '.join(workload_assignment.person_labels)}):")
+    log_print(f"Assignment summary ({args.people} groups {', '.join(workload_assignment.person_labels)}):")
     for label in workload_assignment.person_labels:
         data = summary.get(label, {})
         file_count = data.get("file_count", 0)

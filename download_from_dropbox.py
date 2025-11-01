@@ -122,7 +122,7 @@ def get_range_from_user(all_ids: Set[int]) -> Tuple[Optional[int], Optional[int]
         except ValueError:
             log_print("Please enter valid numbers.")
         except KeyboardInterrupt:
-            log_print("\nCancelled.")
+            log_print("Cancelled.")
             return None, None
 
 # Thread-safe counters
@@ -180,7 +180,8 @@ def process_target_id(target_id: int, source_files: List[Path], dest_folder: Pat
 
 def copy_files_from_folder(target_ids: Set[int], source_folder: Path, dest_folder: Path, folder_type: str) -> Dict[str, Any]:
     """Copy files from a specific Dropbox folder to destination folder"""
-    log_print(f"\n=== Processing {folder_type.upper()} files ===")
+    log_print('')
+    log_print(f"=== Processing {folder_type.upper()} files ===")
     log_print(f"Source: {source_folder}")
     log_print(f"Destination: {dest_folder.absolute()}")
     
@@ -252,7 +253,8 @@ def copy_files_from_folder(target_ids: Set[int], source_folder: Path, dest_folde
     elapsed_time = time.time() - start_time
     
     # Report results for this folder
-    log_print(f"\n--- {folder_type.capitalize()} Summary ---")
+    log_print('')
+    log_print(f"--- {folder_type.capitalize()} Summary ---")
     log_print(f"Execution time: {elapsed_time:.2f} seconds")
     log_print(f"Files copied: {copy_stats['copied']}")
     log_print(f"Copy errors: {copy_stats['errors']}")
@@ -453,7 +455,8 @@ def main():
         all_missing_ids.extend(label_stats['missing_ids'])
     
     # Final summary with complete missing IDs
-    log_print(f"\n=== FINAL SUMMARY ===")
+    log_print('')
+    log_print(f"=== FINAL SUMMARY ===")
     log_print(f"Total files copied: {total_copied}")
     log_print(f"Total errors: {total_errors}")
     
@@ -473,26 +476,63 @@ def main():
         log_print("✅ All requested files found and copied successfully!")
     log_print('')
 
+def check_single_order_blankshirt(oid: int, api_key: str) -> bool:
+    """Check if a single order ID is blankshirt product."""
+    try:
+        url = f"https://lemiex.us/api/order/{oid}?api_key={api_key}"
+        resp = requests.get(url, timeout=15)
+        if resp.status_code != 200:
+            log_print(f"Warning: order {oid} API returned {resp.status_code}")
+            return False
+        data = resp.json()
+        items = data.get('items', [])
+        for it in items:
+            if isinstance(it, dict):
+                pname = it.get('product_name')
+                if isinstance(pname, str) and pname.lower() == 'blankshirt':
+                    return True
+        return False
+    except Exception as e:
+        log_print(f"Error checking order {oid}: {e}")
+        return False
+
 def check_order_blankshirt(id_list: List[int], api_key: str = "yoXIxxKk-3Ps5-i5IG-dri8") -> List[int]:
-    """Return subset of ids that are blankshirt products by querying the order API."""
+    """Return subset of ids that are blankshirt products by querying the order API with multi-threading."""
+    if not id_list:
+        return []
+    
+    log_print(f"Checking {len(id_list)} orders for blankshirt products...")
     blankshirt_ids = []
-    for oid in id_list:
-        try:
-            url = f"https://lemiex.us/api/order/{oid}?api_key={api_key}"
-            resp = requests.get(url, timeout=15)
-            if resp.status_code != 200:
-                log_print(f"Warning: order {oid} API returned {resp.status_code}")
-                continue
-            data = resp.json()
-            items = data.get('items', [])
-            for it in items:
-                if isinstance(it, dict):
-                    pname = it.get('product_name')
-                    if isinstance(pname, str) and pname.lower() == 'blankshirt':
-                        blankshirt_ids.append(oid)
-                        break
-        except Exception as e:
-            log_print(f"Error checking order {oid}: {e}")
+    
+    # Use ThreadPoolExecutor for concurrent API requests
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        # Submit all tasks
+        future_to_id = {
+            executor.submit(check_single_order_blankshirt, oid, api_key): oid 
+            for oid in id_list
+        }
+        
+        # Process completed tasks
+        completed = 0
+        total_tasks = len(future_to_id)
+        
+        for future in as_completed(future_to_id):
+            oid = future_to_id[future]
+            completed += 1
+            
+            try:
+                is_blankshirt = future.result()
+                if is_blankshirt:
+                    blankshirt_ids.append(oid)
+                
+                # Progress indicator for large batches
+                if total_tasks > 10 and (completed % 10 == 0 or completed == total_tasks):
+                    log_print(f"Blankshirt check progress: {completed}/{total_tasks} orders checked")
+                    
+            except Exception as e:
+                log_print(f"❌ Error processing order {oid}: {e}")
+    
+    log_print(f"Found {len(blankshirt_ids)} blankshirt orders out of {len(id_list)} total")
     return blankshirt_ids
 
 
@@ -609,13 +649,13 @@ def re_download(missing_ids: List[int], args):
         else:
             log_print(f"No new files found in this poll. IDs still missing: {sorted(list(remaining))}")
 
-        # Re-request sync every 18 polls (~180s if sleep 10s)
-        if poll_count % 18 == 0:
+        # Re-request sync every 6 polls (~180s if sleep 30s)
+        if poll_count % 6 == 0:
             log_print("Re-requesting sync from API for remaining IDs...")
             sync_missing_ids(list(remaining))
 
         # Sleep between polls
-        time.sleep(10)
+        time.sleep(30)
 
     log_print("✅ All missing IDs recovered and re-downloaded.")
 
@@ -631,7 +671,7 @@ def list_dropbox_files():
     
     for folder_name, pattern in folders:
         folder_path = dropbox_base / folder_name
-        log_print(f"\n=== {folder_name.upper()} FOLDER ===")
+        log_print(f"=== {folder_name.upper()} FOLDER ===")
         log_print(f"Path: {folder_path}")
         
         if not folder_path.exists():

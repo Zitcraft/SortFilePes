@@ -73,13 +73,13 @@ def run_script_with_partial_input(script_name, description, auto_inputs=None):
         log_print("="*60)
         
         log_print("📝 AUTO MODE:")
-        log_print("   ✅ Tự động chọn option '5' và xác nhận 'y'")
+        log_print("   ✅ Tự động chọn option '6' và xác nhận 'y'")
         log_print("   👤 Bạn sẽ nhập start ID và end ID sau khi thấy API range")
         log_print("")
         
         # Set environment variable to signal partial auto mode to the download script
         os.environ['PARTIAL_AUTO_MODE'] = '1'
-        os.environ['AUTO_OPTION'] = '5'
+        os.environ['AUTO_OPTION'] = '6'
         os.environ['AUTO_CONFIRM'] = 'y'
         
         try:
@@ -238,11 +238,11 @@ def run_all_steps():
     ]
     
     log_print("🚀 Chạy tất cả các bước tự động...")
-    confirm = logged_input("Bạn có chắc chắn? (y/N): ").strip().lower()
+    # confirm = logged_input("Bạn có chắc chắn? (y/N): ").strip().lower()
     
-    if confirm != 'y':
-        log_print("❌ Hủy bỏ")
-        return
+    # if confirm != 'y':
+    #     log_print("❌ Hủy bỏ")
+    #     return
     
     failed_steps = []
     
@@ -258,7 +258,7 @@ def run_all_steps():
             log_print("📝 Sau đó bạn sẽ thấy API range và nhập start/end ID thủ công")
             
             # Use auto inputs: only 5 (option) and y (confirm), then interactive for start/end
-            auto_inputs = ["5", "y"]  # Only auto input option and confirm
+            auto_inputs = ["6", "y"]  # Only auto input option and confirm
             success = run_script_with_partial_input(script, description, auto_inputs)
         
         else:
@@ -287,27 +287,27 @@ def main():
     
     log_print("Quy trình hoàn chỉnh (4 bước):")
     log_print("1. 📥 Tải file từ Dropbox")
-    log_print("   - Download .pes files → files/design/")
-    log_print("   - Download labels → files/labels/")
+    # log_print("   - Download .pes files → files/design/")
+    # log_print("   - Download labels → files/labels/")
     
     log_print("2. 📂 Phân loại file")
-    log_print("   - Phân tích và nhóm file .pes")
-    log_print("   - Tạo folders A/B/C trong sorted/")
-    log_print("   - Di chuyển files vào folders (move)")
-    log_print("   - Labels ở lại files/labels/ (sẽ xử lý ở bước 4)")
-    log_print("   - Tạo CSV/XLSX reports")
+    # log_print("   - Phân tích và nhóm file .pes")
+    # log_print("   - Tạo folders A/B/C trong sorted/")
+    # log_print("   - Di chuyển files vào folders (move)")
+    # log_print("   - Labels ở lại files/labels/ (sẽ xử lý ở bước 4)")
+    # log_print("   - Tạo CSV/XLSX reports")
     
     log_print("3. 🎯 Xuất file DST")
-    log_print("   - Chuyển .pes → .dst với tên XXXYLZMDD")
-    log_print("   - Xử lý multi-face items")
-    log_print("   - Lưu vào sorted/*/dst/")
+    # log_print("   - Chuyển .pes → .dst với tên XXXYLZMDD")
+    # log_print("   - Xử lý multi-face items")
+    # log_print("   - Lưu vào sorted/*/dst/")
     
     log_print("4. 🏷️  Gắn nhãn DST")
-    log_print("   - Đọc DST mapping log")
-    log_print("   - Di chuyển labels có DST vào sorted/*/labels/")
-    log_print("   - Gắn tên DST vào PNG labels")
-    log_print("   - Multi-face: 'DST1 | DST2 | DST3'")
-    log_print("   - Labels không có DST ở lại files/labels/")
+    # log_print("   - Đọc DST mapping log")
+    # log_print("   - Di chuyển labels có DST vào sorted/*/labels/")
+    # log_print("   - Gắn tên DST vào PNG labels")
+    # log_print("   - Multi-face: 'DST1 | DST2 | DST3'")
+    # log_print("   - Labels không có DST ở lại files/labels/")
     
     # Check requirements
     log_print("Checking requirements...")
@@ -332,6 +332,7 @@ def main():
         elif choice == '2':
             # Auto mode
             run_all_steps()
+            break
         elif choice == '3':
             # Individual step
             run_individual_step()

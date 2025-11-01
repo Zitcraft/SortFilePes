@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 
 from .time_estimator import TimeEstimator
 from .file_operations import FileOperations
-
+from embroidery_sorter.workflow_logger import log_print, logged_input, get_logger
 
 class Exporters:
     """Handles exporting assignment data to various formats"""
@@ -74,7 +74,7 @@ class Exporters:
                 writer.writerow(["TOTAL", total_files, total_seconds, TimeEstimator.human_readable(total_seconds), 
                                total_adjusted, TimeEstimator.human_readable(total_adjusted), total_unique_ids, total_unique_hashes])
 
-        print(f"CSV exported to: {csv_path}")
+        log_print(f"CSV exported to: {csv_path}")
 
     @staticmethod
     def export_xlsx(meta_list: List[Dict[str, Any]], 
@@ -83,12 +83,13 @@ class Exporters:
                    person_labels: Optional[List[str]] = None) -> None:
         """Export assignment to an Excel workbook with one sheet per person and a Summary sheet.
         
-        Requires openpyxl. If it's not installed, prints an instructional message and returns.
+        Requires openpyxl. If it's not installed, log_prints an instructional message and returns.
         """
         try:
             from openpyxl import Workbook
         except Exception:
-            print("openpyxl is required to write .xlsx files. Install with: pip install openpyxl", file=sys.stderr)
+            filesystem = file=sys.stderr
+            log_print(f"openpyxl is required to write .xlsx files. Install with: pip install openpyxl {filesystem}")
             return
 
         if person_labels is None:
@@ -153,4 +154,4 @@ class Exporters:
         xlsx_path = Path(xlsx_path)
         xlsx_path.parent.mkdir(parents=True, exist_ok=True)
         wb.save(str(xlsx_path))
-        print(f"XLSX exported to: {xlsx_path}")
+        log_print(f"XLSX exported to: {xlsx_path}")

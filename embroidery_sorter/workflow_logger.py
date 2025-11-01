@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Add custom USERINPUT log level
 USERINPUT_LEVEL = 25  # Between INFO (20) and WARNING (30)
-logging.addLevelName(USERINPUT_LEVEL, 'USERINPUT')
+logging.addLevelName(USERINPUT_LEVEL, 'USER')
 
 
 class WorkflowLogger:
@@ -31,7 +31,7 @@ class WorkflowLogger:
         logger.handlers.clear()
         
         # Create formatters
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('[%(asctime)s] [%(levelname)s] %(message)s')
         
         # File handler
         file_handler = logging.FileHandler(self.log_file, encoding='utf-8')
@@ -70,8 +70,13 @@ class WorkflowLogger:
     def logged_input(self, prompt):
         """Get user input and log it."""
         try:
-            user_input = input(prompt)
-            self.log_userinput(f"{prompt} -> {user_input}")
+            self.logger.info(prompt)
+            user_input = input()
+            if user_input == "":
+                self.log_userinput(f"-> Enter")
+            else:
+                self.log_userinput(f"-> {user_input}")
+
             return user_input
         except (KeyboardInterrupt, EOFError) as e:
             self.logger.info(f"User input interrupted: {e}")
