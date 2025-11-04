@@ -71,7 +71,7 @@ class WorkflowLogger:
         """Get user input and log it."""
         try:
             self.logger.info(prompt)
-            user_input = input()
+            user_input = input("╰┈➤ ")
             if user_input == "":
                 self.log_userinput(f"-> Enter")
             else:

@@ -19,6 +19,11 @@ class Config:
     DEFAULT_PERSON_LABELS = ["A", "B", "C", "D"]
     # Person weights - last person gets less work (0.2 = 20% of normal workload)
     DEFAULT_PERSON_WEIGHTS = [1.0, 1.0, 0.7, 0.2]
+    # Custom starting numbers for each person's folder numbering
+    # [A_start, B_start, C_start, D_start] - change these to customize starting numbers
+    # Example: [1, 1, 1, 1] = A starts at 001, B at 001, C at 001, D at 001
+    # Example: [1, 50, 100, 150] = A starts at 001, B at 050, C at 100, D at 150  
+    DEFAULT_PERSON_STT = [1, 1, 1, 1]
     
     # File operation parameters
     DEFAULT_HASH_LENGTH = 8
@@ -48,5 +53,6 @@ class Config:
             'people_count': cls.DEFAULT_PEOPLE_COUNT,
             'person_labels': cls.DEFAULT_PERSON_LABELS,
             'person_weights': cls.DEFAULT_PERSON_WEIGHTS,
+            'person_stt': cls.DEFAULT_PERSON_STT,
             'duplicate_reduction': cls.DUPLICATE_REDUCTION_SECONDS
         }

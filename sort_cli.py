@@ -41,6 +41,7 @@ def main(argv=None):
     log_print("- Nguon: files/design/ (file .pes)")
     log_print("- Dich: sorted/ (phan loai A/B/C/D)")
     log_print("- Person weights: A(1.0), B(1.0), C(0.7), D(0.2)")
+    log_print(f"- Starting numbers: {dict(zip(Config.DEFAULT_PERSON_LABELS[:args.people], Config.DEFAULT_PERSON_STT[:args.people]))}")
     log_print("- Sao chep nhan tu files/labels/ vao sorted/*/labels/")
     log_print("- Tao CSV/XLSX voi folder_order va unique_hashes")
     log_print('')
@@ -70,6 +71,9 @@ def main(argv=None):
     # Use corresponding weights, extending with 1.0 if needed
     person_weights = Config.DEFAULT_PERSON_WEIGHTS[:args.people] if args.people <= len(Config.DEFAULT_PERSON_WEIGHTS) else Config.DEFAULT_PERSON_WEIGHTS + [1.0] * (args.people - len(Config.DEFAULT_PERSON_WEIGHTS))
     
+    # Use corresponding starting numbers, extending with 1 if needed
+    person_stt = Config.DEFAULT_PERSON_STT[:args.people] if args.people <= len(Config.DEFAULT_PERSON_STT) else Config.DEFAULT_PERSON_STT + [1] * (args.people - len(Config.DEFAULT_PERSON_STT))
+    
     workload_assignment = WorkloadAssignment({
         'people_count': args.people,
         'person_labels': person_labels,
@@ -97,7 +101,7 @@ def main(argv=None):
 
     # 6) Move/copy files into person folders under dst
     updated_meta = FileOperations.group_into_person_folders(
-        file_meta, dst, move=not args.copy, person_labels=workload_assignment.person_labels
+        file_meta, dst, move=not args.copy, person_labels=workload_assignment.person_labels, person_stt=person_stt
     )
     
     # 7) Build summary report

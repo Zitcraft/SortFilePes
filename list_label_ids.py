@@ -8,7 +8,7 @@ Supports custom folder selection and recursive scanning.
 import os
 import re
 from pathlib import Path
-from typing import List, Set
+from typing import List, Set, Dict
 from embroidery_sorter.workflow_logger import log_print, logged_input
 
 try:
@@ -18,6 +18,121 @@ try:
 except ImportError:
     TKINTER_AVAILABLE = False
     log_print("⚠️  tkinter not available - folder dialog will not work")
+
+
+def extract_stt_from_folder_name(folder_name: str) -> int:
+    """
+    Extract STT number from folder name with pattern XXX_hash.
+    
+    Examples:
+    - 017_f0a1d6cb -> 17
+    - 001_dcefbd29 -> 1
+    - 025_abc123def -> 25
+    
+    Returns 0 if no valid STT found.
+    """
+    try:
+        # Split by underscore and take the first part
+        parts = folder_name.split('_')
+        if len(parts) >= 2:
+            stt_str = parts[0]
+            # Check if it's a valid number
+            if stt_str.isdigit():
+                return int(stt_str)
+        return 0
+    except Exception as e:
+        log_print(f"Error parsing folder name {folder_name}: {e}")
+        return 0
+
+
+def scan_person_max_stt(base_folder: str) -> Dict[str, int]:
+    """
+    Scan person folders and find max STT in each person's subfolders.
+    Automatically detects all person folders (A, B, C, D, F, etc.) instead of hardcoding.
+    
+    Args:
+        base_folder: Base folder path (should contain sorted/ subdirectory)
+    
+    Returns:
+        Dict mapping person letter to max STT number
+        Example: {'A': 17, 'B': 15, 'C': 0, 'D': 0, 'F': 5}
+    """
+    result = {}
+    
+    # Look for sorted folder in the selected directory
+    base_path = Path(base_folder)
+    sorted_path = base_path / "sorted"
+    
+    # If no sorted subfolder, check if the selected folder itself is the sorted folder
+    if not sorted_path.exists():
+        # Check if current folder looks like a sorted folder (contains person subdirs)
+        person_folders = [p for p in base_path.iterdir() if p.is_dir() and len(p.name) == 1 and p.name.isalpha() and p.name.isupper()]
+        if person_folders:
+            sorted_path = base_path
+        else:
+            log_print(f"⚠️  No 'sorted' folder or person folders found in {base_folder}")
+            return {}
+    
+    log_print(f"🔍 Scanning person folders in: {sorted_path}")
+    
+    # Auto-detect all person folders (single uppercase letters)
+    person_folders = [p for p in sorted_path.iterdir() if p.is_dir() and len(p.name) == 1 and p.name.isalpha() and p.name.isupper()]
+    
+    if not person_folders:
+        log_print("⚠️  No person folders found (expected single letter folders like A, B, C, D, F, etc.)")
+        return {}
+    
+    # Sort person folders alphabetically for consistent output
+    person_folders.sort(key=lambda x: x.name)
+    
+    # Scan each detected person folder
+    for person_dir in person_folders:
+        person_letter = person_dir.name
+        max_stt = 0
+        
+        # Check both old and new structure
+        # New structure: sorted/A/pes/001_hash/
+        pes_path = person_dir / "pes"
+        if pes_path.exists():
+            # New structure
+            stt_folders = [f for f in pes_path.iterdir() if f.is_dir()]
+        else:
+            # Old structure: sorted/A/001_hash/
+            stt_folders = [f for f in person_dir.iterdir() if f.is_dir() and '_' in f.name]
+        
+        # Extract STT from each folder and find max
+        for folder in stt_folders:
+            stt = extract_stt_from_folder_name(folder.name)
+            if stt > max_stt:
+                max_stt = stt
+        
+        result[person_letter] = max_stt
+        # log_print(f"   • Person {person_letter}: Max STT = {max_stt:03d}")
+    
+    return result
+
+
+def print_person_max_stt_summary(stt_data: Dict[str, int]) -> None:
+    """Print a summary of max STT for each person."""
+    if not stt_data:
+        log_print("⚠️  No person folder data found")
+        return
+    
+    log_print("")
+    log_print("📊 MAX STT SUMMARY PER PERSON:")
+    log_print("=" * 40)
+    
+    total_folders = 0
+    # Sort by person letter for consistent output
+    for person in sorted(stt_data.keys()):
+        max_stt = stt_data[person]
+        total_folders += max_stt
+        log_print(f"   🏷️  Person {person} = {max_stt:03d}")
+    
+    log_print("-" * 40)
+    log_print(f"   📦 Total folders: {total_folders}")
+    log_print("=" * 40)
+    # log_print("")
 
 
 def extract_id_from_filename(filename: str) -> int:
@@ -65,9 +180,9 @@ def scan_label_folder(folder_path: str) -> List[int]:
     # Use recursive glob to find all PNG files in folder and subfolders
     png_files = list(folder.rglob("*.png"))
     
-    log_print(f"📁 Scanning folder: {folder.absolute()}")
-    log_print(f"🔍 Found {len(png_files)} PNG files (including subfolders)")
-    log_print("")
+    # log_print(f"📁 Scanning folder: {folder.absolute()}")
+    # log_print(f"🔍 Found {len(png_files)} PNG files (including subfolders)")
+    # log_print("")
     
     if not png_files:
         log_print("⚠️  No PNG files found in the folder or its subfolders")
@@ -108,13 +223,13 @@ def scan_label_folder(folder_path: str) -> List[int]:
             log_print(f"   ... and {len(invalid_files) - 10} more")
     
     # Show sample valid extractions
-    if valid_ids:
-        log_print(f"✅ Sample valid extractions:")
-        for order_id, filepath in valid_ids[:10]:  # Show first 10
-            log_print(f"   • {order_id} <- {filepath}")
-        if len(valid_ids) > 10:
-            log_print(f"   ... and {len(valid_ids) - 10} more")
-        log_print("")
+    # if valid_ids:
+    #     log_print(f"✅ Sample valid extractions:")
+    #     for order_id, filepath in valid_ids[:10]:  # Show first 10
+    #         log_print(f"   • {order_id} <- {filepath}")
+    #     if len(valid_ids) > 10:
+    #         log_print(f"   ... and {len(valid_ids) - 10} more")
+    #     log_print("")
     
     return unique_ids
 
@@ -172,6 +287,13 @@ def get_folder_from_user() -> str:
         selected_folder = open_folder_dialog()
         if selected_folder:
             log_print(f"✅ Selected folder: {selected_folder}")
+            
+            # Scan and display max STT for each person
+            log_print("")
+            log_print("🔍 Analyzing person folder STT numbers...")
+            stt_data = scan_person_max_stt(selected_folder)
+            print_person_max_stt_summary(stt_data)
+            
             return selected_folder
         else:
             log_print("❌ No folder selected, falling back to default")
@@ -195,6 +317,13 @@ def get_folder_from_user() -> str:
             selected_folder = open_folder_dialog()
             if selected_folder:
                 log_print(f"✅ Selected folder: {selected_folder}")
+                
+                # Scan and display max STT for each person
+                log_print("")
+                log_print("🔍 Analyzing person folder STT numbers...")
+                stt_data = scan_person_max_stt(selected_folder)
+                print_person_max_stt_summary(stt_data)
+                
                 return selected_folder
             else:
                 log_print("❌ No folder selected")

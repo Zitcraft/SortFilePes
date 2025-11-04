@@ -36,24 +36,37 @@ class FileOperations:
     def group_into_person_folders(file_meta: List[Dict[str, Any]], 
                                 dst: Path, 
                                 move: bool = True, 
-                                person_labels: Optional[List[str]] = None) -> List[Dict[str, Any]]:
+                                person_labels: Optional[List[str]] = None,
+                                person_stt: Optional[List[int]] = None) -> List[Dict[str, Any]]:
         """Place files into dst/<PersonLabel>/{NNN_hash8}/ folders according to file_meta['person'].
         
-        Each person gets their own numbering starting from 001.
+        Each person gets their own numbering starting from their custom start number.
         Returns updated_meta list with dst_path set.
+        
+        Args:
+            file_meta: List of file metadata
+            dst: Destination directory
+            move: If True, move files; if False, copy files
+            person_labels: List of person labels (A, B, C, D)
+            person_stt: List of starting numbers for each person
         """
         if person_labels is None:
             person_labels = Config.DEFAULT_PERSON_LABELS
+        if person_stt is None:
+            person_stt = Config.DEFAULT_PERSON_STT
+            
         dst.mkdir(parents=True, exist_ok=True)
 
-        # Track order per person - each person starts from 1
+        # Track order per person - each person starts from their custom number
         person_orders = {}
         person_indexes = {}
         
-        # Initialize ordering for each person
+        # Initialize ordering for each person with custom starting numbers
         for person_idx in range(len(person_labels)):
             person_orders[person_idx] = {}  # hash -> order number for this person
-            person_indexes[person_idx] = 1  # next order number for this person
+            # Use custom starting number if available, otherwise default to 1
+            start_num = person_stt[person_idx] if person_idx < len(person_stt) else 1
+            person_indexes[person_idx] = start_num  # next order number for this person
 
         updated_meta = []
 
