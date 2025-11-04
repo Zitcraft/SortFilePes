@@ -29,74 +29,112 @@ def check_requirements():
         return False
     
     log_print("✅ All required scripts found")
+    log_print("")
     return True
 
 def run_script_with_input(script_name, description, auto_inputs=None, args=None):
-    """Run script with predefined inputs."""
-    try:
-        cmd = [sys.executable, script_name]
-        if args:
-            cmd.extend(args)
-        
-        # Prepare input string
-        input_text = ""
-        if auto_inputs:
-            input_text = "".join(str(inp) for inp in auto_inputs) + ""
-        
-        log_print("="*60)
-        log_print(f"RUNNING: {description}")
-        log_print(f"Script: {script_name}")
-        log_print(f"Auto inputs: {auto_inputs}")
-        log_print("="*60)
-        
-        # Run with input
-        result = subprocess.run(
-            cmd,
-            input=input_text,
-            text=True,
-            capture_output=False,
-            cwd=os.getcwd()
-        )
-        
-        return result.returncode == 0
-        
-    except Exception as e:
-        log_print(f"❌ Error running {script_name}: {e}")
-        return False
+    """Run script with predefined inputs (legacy function - redirects to unified function)."""
+    if args:
+        # If args are provided, use the original implementation for compatibility
+        try:
+            cmd = [sys.executable, script_name] + args
+            input_text = "\n".join(str(inp) for inp in auto_inputs) + "\n" if auto_inputs else ""
+            
+            log_print("="*60)
+            log_print(f"RUNNING: {description}")
+            log_print(f"Script: {script_name}")
+            log_print(f"Args: {args}")
+            log_print(f"Auto inputs: {auto_inputs}")
+            log_print("="*60)
+            
+            result = subprocess.run(
+                cmd,
+                input=input_text,
+                text=True,
+                capture_output=False,
+                cwd=os.getcwd()
+            )
+            return result.returncode == 0
+        except Exception as e:
+            log_print(f"❌ Error running {script_name}: {e}")
+            return False
+    else:
+        # Use the new unified function
+        return run_script_with_auto_inputs(script_name, description, auto_mode="default", auto_inputs=auto_inputs)
 
-def run_script_with_partial_input(script_name, description, auto_inputs=None):
-    """Run script with partial automation - auto '5' and 'y', then user input for start/end."""
+def run_script_with_auto_inputs(script_name, description, auto_mode="default", auto_inputs=None):
+    """Run script with various auto input modes.
+    
+    Args:
+        script_name: Name of the script to run
+        description: Description for logging
+        auto_mode: Type of auto mode - "partial", "folder_dialog", "default"
+        auto_inputs: Optional list of inputs for default mode
+    """
     try:
         log_print("="*60)
         log_print(f"RUNNING: {description}")
         log_print(f"Script: {script_name}")
         log_print("="*60)
         
-        log_print("📝 AUTO MODE:")
-        log_print("   ✅ Tự động chọn option '6' và xác nhận 'y'")
-        log_print("   👤 Bạn sẽ nhập start ID và end ID sau khi thấy API range")
-        log_print("")
+        # Set environment variables based on auto mode
+        env_vars_to_cleanup = []
         
-        # Set environment variable to signal partial auto mode to the download script
-        os.environ['PARTIAL_AUTO_MODE'] = '1'
-        os.environ['AUTO_OPTION'] = '6'
-        os.environ['AUTO_CONFIRM'] = 'y'
+        if auto_mode == "partial":
+            log_print("📝 AUTO MODE (PARTIAL):")
+            log_print("   ✅ Tự động chọn option '6' và xác nhận 'y'")
+            log_print("   👤 Bạn sẽ nhập Range ID thủ công")
+            log_print("")
+            
+            os.environ['PARTIAL_AUTO_MODE'] = '1'
+            os.environ['AUTO_OPTION'] = '6'
+            os.environ['AUTO_CONFIRM'] = 'y'
+            env_vars_to_cleanup = ['PARTIAL_AUTO_MODE', 'AUTO_OPTION', 'AUTO_CONFIRM']
+            
+        elif auto_mode == "folder_dialog":
+            log_print("📝 AUTO MODE (FOLDER DIALOG):")
+            log_print("   🗂️ Tự động chọn option '6' (Browse folder dialog)")
+            log_print("")
+            
+            os.environ['AUTO_FOLDER_DIALOG'] = '1'
+            os.environ['AUTO_OPTION'] = '6'
+            env_vars_to_cleanup = ['AUTO_FOLDER_DIALOG', 'AUTO_OPTION']
+            
+        elif auto_mode == "default" and auto_inputs:
+            log_print("📝 AUTO MODE (INPUTS):")
+            log_print(f"   ✅ Auto inputs: {auto_inputs}")
+            log_print("")
         
         try:
-            # Run the script normally - it will check environment variables
+            # Run the script
             cmd = [sys.executable, script_name]
-            result = subprocess.run(cmd, cwd=os.getcwd())
+            
+            if auto_mode == "default" and auto_inputs:
+                # For default mode with inputs, use the old input method
+                input_text = "\n".join(str(inp) for inp in auto_inputs) + "\n"
+                result = subprocess.run(
+                    cmd,
+                    input=input_text,
+                    text=True,
+                    capture_output=False,
+                    cwd=os.getcwd()
+                )
+            else:
+                # For partial and folder_dialog modes, run normally (script checks env vars)
+                result = subprocess.run(cmd, cwd=os.getcwd())
+            
             return result.returncode == 0
+            
         finally:
             # Clean up environment variables
-            os.environ.pop('PARTIAL_AUTO_MODE', None)
-            os.environ.pop('AUTO_OPTION', None)
-            os.environ.pop('AUTO_CONFIRM', None)
+            for var in env_vars_to_cleanup:
+                os.environ.pop(var, None)
         
     except Exception as e:
-        log_print(f"❌ Error in partial auto mode: {e}")
+        log_print(f"❌ Error in auto mode '{auto_mode}': {e}")
         log_print("🔄 Falling back to fully interactive mode...")
         return run_script(script_name, description)
+
 
 def run_script(script_name, description, args=None):
     """Run script interactively."""
@@ -191,26 +229,30 @@ def run_individual_step():
         ("sort_cli.py", "Phân loại file thêu"),
         ("export_dst.py", "Xuất file DST"),
         ("map_dst_labels.py", "Gắn nhãn DST"),
-        ("check_id_completeness.py", "Kiểm tra tính đầy đủ ID")
+        ("check_id_completeness.py", "Kiểm tra tính đầy đủ ID"),
+        ("list_label_ids.py", "Liệt kê ID từ labels")
     ]
     
-    log_print("Các bước có thể chạy:")
+    log_print("👉 Các bước có thể chạy:")
     for i, (script, desc) in enumerate(steps, 1):
-        log_print(f"{i}. {desc}")
+        log_print(f"   {i}. {desc}")
     
     while True:
         try:
-            choice = logged_input("Chọn bước (1-5) hoặc 'b' để quay lại: ").strip().lower()
+            choice = logged_input("Chọn bước (1-6) hoặc 'b' để quay lại: ").strip().lower()
             
             if choice == 'b':
                 return
             
             step_num = int(choice)
-            if 1 <= step_num <= 5:
+            if 1 <= step_num <= 6:
                 script, description = steps[step_num - 1]
                 
                 if step_num == 2:  # Sort step needs special handling
                     success = run_sort_step()
+                elif step_num == 6:  # List label IDs - auto select folder dialog
+                    log_print("🗂️ Auto-selecting folder dialog for label ID extraction...")
+                    success = run_script_with_auto_inputs(script, description, auto_mode="folder_dialog")
                 else:
                     success = run_script(script, description)
                     # If this was the download step, run completeness check
@@ -223,7 +265,7 @@ def run_individual_step():
                     log_print(f"❌ {description} failed!")
                 break
             else:
-                log_print("❌ Vui lòng chọn số từ 1-5")
+                log_print("❌ Vui lòng chọn số từ 1-6")
                 
         except ValueError:
             log_print("❌ Vui lòng nhập số hợp lệ")
@@ -252,14 +294,11 @@ def run_all_steps():
         if special == "special" and script == "sort_cli.py":
             success = run_sort_step()
         elif special == "auto_download" and script == "download_from_dropbox.py":
-            # Auto input "5" and "y" only, then let user manually input start/end IDs
+            # Auto input "6" and "y" only, then let user manually input start/end IDs
             log_print("🤖 Auto mode: Download script")
-            log_print("📝 Tự động chọn option 5 và xác nhận 'y'")
-            log_print("📝 Sau đó bạn sẽ thấy API range và nhập start/end ID thủ công")
+            log_print("📝 Tự động chọn option 6 và xác nhận 'y'")
             
-            # Use auto inputs: only 5 (option) and y (confirm), then interactive for start/end
-            auto_inputs = ["6", "y"]  # Only auto input option and confirm
-            success = run_script_with_partial_input(script, description, auto_inputs)
+            success = run_script_with_auto_inputs(script, description, auto_mode="partial")
         
         else:
             success = run_script(script, description)
@@ -308,6 +347,7 @@ def main():
     # log_print("   - Gắn tên DST vào PNG labels")
     # log_print("   - Multi-face: 'DST1 | DST2 | DST3'")
     # log_print("   - Labels không có DST ở lại files/labels/")
+    log_print("")
     
     # Check requirements
     log_print("Checking requirements...")
@@ -315,11 +355,11 @@ def main():
         sys.exit(1)
     
     while True:
-        log_print("Chọn tùy chọn:")
-        log_print("1. Chạy từng bước (có xác nhận cho mỗi bước)")
-        log_print("2. Chạy tất cả (auto mode)")
-        log_print("3. Chạy bước cụ thể")
-        log_print("4. Hiển thị trạng thái thư mục")
+        log_print("👉 Chọn tùy chọn:")
+        log_print("   1. Chạy từng bước (có xác nhận cho mỗi bước)")
+        log_print("   2. Chạy tất cả (auto mode)")
+        log_print("   3. Chạy bước cụ thể")
+        log_print("   4. Hiển thị trạng thái thư mục")
         
         choice = logged_input("Nhập lựa chọn (1-4) hoặc 'q' để thoát: ").strip().lower()
         

@@ -158,7 +158,10 @@ def log_print_report(title: str, results: List[Dict]):
     incomplete = [r for r in results if r['expected_files'] is not None and r['actual'] != r['expected_files']]
     no_expected = [r for r in results if r['expected_items'] is None]
     log_print(f'Total distinct order IDs scanned: {total}')
-    log_print(f'IDs with missing/extra files: {len(incomplete)}')
+    if len(incomplete) > 0:
+        log_print(f'IDs with missing/extra files: ⚠️ {len(incomplete)} ⚠️')
+    else:
+        log_print(f'IDs with missing/extra files: {len(incomplete)}')
     log_print('')
     # log_print(f'IDs where "item_N" could not be extracted: {len(no_expected)}')
 
@@ -187,7 +190,10 @@ def log_print_report(title: str, results: List[Dict]):
     if incomplete:
         ids = [int(r['order']) for r in incomplete]
         ids.sort()
-        log_print(f'Summary - IDs with mismatches: {ids}')
+        if len(ids) > 0:
+            log_print(f'Summary - IDs with mismatches: ⚠️ {ids}')
+        else:
+            log_print(f'Summary - IDs with mismatches: {ids}')
 
 
 def main():
